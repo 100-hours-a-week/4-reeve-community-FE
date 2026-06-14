@@ -80,7 +80,7 @@ const setBoardDetail = data => {
 
     const likeButtonElement = document.querySelector('.likeButton');
     const likeCountElement = likeButtonElement.querySelector('h3');
-    let isLiked = false;
+    let isLiked = data.isLiked ?? false;
     let isLikeLoading = false;
     let likeCount = Number(data.likeCount) || 0;
 

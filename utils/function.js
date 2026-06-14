@@ -13,12 +13,13 @@ export const getServerUrl = () => {
     const host = window.location.hostname;
     return host.includes('localhost')
         ? 'http://localhost:3000'
-        : `http://${host}:3000`;
+        : `https://${host}`;
 };
 
 export const resolveImageUrl = (url, fallback = null) => {
     if (!url) return fallback;
     if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('/')) return url;
     return `${getServerUrl()}${url}`;
 };
 

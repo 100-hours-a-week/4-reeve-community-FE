@@ -152,8 +152,8 @@ const modifyPassword = async () => {
 
     if (status == HTTP_NO_CONTENT) {
         try {
-            await requestJson(`${getServerUrl()}/auth/logout`, {
-                method: 'POST',
+            await requestJson(`${getServerUrl()}/auth`, {
+                method: 'DELETE',
                 credentials: 'include',
             });
         } catch (error) {

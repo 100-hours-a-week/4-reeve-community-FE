@@ -160,19 +160,21 @@ const sendModifyData = async () => {
         } else {
             const payload = {
                 nickname: changeData.nickname,
+                imageId: changeData.imageId ?? null,
+                removeImage: changeData.removeImage,
             };
-            if (changeData.imageId !== undefined) {
-                payload.imageId = changeData.imageId;
-            }
-            if (changeData.removeImage) {
-                payload.removeImage = true;
-            }
-            const { status } = await userModify(userId, payload);
 
-            if (status === HTTP_OK) {
-                saveToastMessage('수정완료');
-                location.href = '/html/modifyInfo.html';
-            } else {
+            try {
+                const { status } = await userModify(userId, payload);
+                if (status === HTTP_OK) {
+                    saveToastMessage('수정완료');
+                    location.href = '/html/modifyInfo.html';
+                } else {
+                    saveToastMessage('수정실패');
+                    location.href = '/html/modifyInfo.html';
+                }
+            } catch (error) {
+                console.error('회원정보 수정 오류:', error);
                 saveToastMessage('수정실패');
                 location.href = '/html/modifyInfo.html';
             }
@@ -187,8 +189,8 @@ const deleteAccount = async () => {
 
         if (status === HTTP_NO_CONTENT) {
             try {
-                await requestJson(`${getServerUrl()}/auth/logout`, {
-                    method: 'POST',
+                await requestJson(`${getServerUrl()}/auth`, {
+                    method: 'DELETE',
                     credentials: 'include',
                 });
             } catch (error) {

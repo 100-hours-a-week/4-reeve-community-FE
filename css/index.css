@@ -16,19 +16,13 @@
     flex-direction: column;
     align-items: flex-start; /* 중앙 정렬에서 시작 정렬로 변경 */
     justify-content: center;
-    row-gap: 24px;
-    padding: 40px 0 10px 0;
+    row-gap: 12px;
+    padding: 16px 0 12px 0;
     width: 100%; /* .write 영역이 부모 컨테이너의 전체 너비를 차지하도록 설정 */
 }
 
 .write h2 {
-    font-size: 24px;
-    font-weight: 400;
-    line-height: 32px;
-    letter-spacing: -0.02em;
-    color: rgba(69, 72, 84, 1);
-    text-align: center;
-    width: 100%; /* h2도 중앙 정렬을 유지하도록 설정 */
+    display: none;
 }
 
 .write a {

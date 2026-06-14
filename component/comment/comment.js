@@ -101,7 +101,8 @@ const CommentItem = (data, writerId, postId, commentId) => {
     const img = document.createElement('img');
     img.className = 'commentImg';
     img.src = resolveImageUrl(
-        data.author && data.author.profileImageUrl,
+        data.author &&
+            (data.author.profileImgUrl ?? data.author.profileImageUrl),
         DEFAULT_PROFILE_IMAGE,
     );
     picture.appendChild(img);

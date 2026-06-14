@@ -16,8 +16,8 @@ const headerDropdownMenu = () => {
     logoutLink.addEventListener('click', async () => {
         try {
             const accessToken = localStorage.getItem('accessToken');
-            await fetch(`${getServerUrl()}/auth/logout`, {
-                method: 'POST',
+            await fetch(`${getServerUrl()}/auth`, {
+                method: 'DELETE',
                 headers: accessToken
                     ? { Authorization: `Bearer ${accessToken}` }
                     : undefined,
@@ -25,6 +25,7 @@ const headerDropdownMenu = () => {
             });
         } finally {
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('userId');
             location.href = '/html/login.html';
         }
     });
