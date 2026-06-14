@@ -30,9 +30,17 @@ export const serverSessionCheck = async () => {
 
 export const authCheck = async () => {
     const response = await serverSessionCheck();
-    if (!response || !response.ok)
+    if (!response || !response.ok) {
         location.href = '/html/login.html';
-    return response;
+        return {
+            ok: false,
+            userId: null,
+        };
+    }
+    return {
+        ok: true,
+        userId: localStorage.getItem('userId'),
+    };
 };
 
 export const authCheckReverse = async () => {

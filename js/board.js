@@ -3,16 +3,15 @@ import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
     authCheck,
-    getServerUrl,
     prependChild,
     padTo2Digits,
     resolveImageUrl,
 } from '../utils/function.js';
+import { getUserInfo } from '../api/modifyInfoRequest.js';
 import {
     getPost,
     deletePost,
     writeComment,
-    getComments,
     likePost,
     unlikePost,
 } from '../api/boardRequest.js';
@@ -60,15 +59,15 @@ const setBoardDetail = data => {
     createdAtElement.textContent = formattedDate;
 
     imgElement.src = resolveImageUrl(
-        data.profileImage,
+        data.writer ? data.writer.profileImgUrl : null,
         DEFAULT_PROFILE_IMAGE,
     );
 
-    nicknameElement.textContent = data.nickname;
+    nicknameElement.textContent = data.writer ? data.writer.nickname : '';
 
     // 바디 정보
     const contentImgElement = document.querySelector('.contentImg');
-    const fileUrl = data.fileUrl || resolveImageUrl(data.filePath);
+    const fileUrl = resolveImageUrl(data.imageUrl);
     if (fileUrl) {
         console.log(fileUrl);
         const img = document.createElement('img');
@@ -93,7 +92,7 @@ const setBoardDetail = data => {
         try {
             if (!isLiked) {
                 const { ok, status, code, data: likeData } = await likePost(
-                    data.id,
+                    data.postId,
                 );
                 if (ok) {
                     isLiked = true;
@@ -113,7 +112,7 @@ const setBoardDetail = data => {
                 }
             } else {
                 const { ok, status, code, data: likeData } = await unlikePost(
-                    data.id,
+                    data.postId,
                 );
                 if (ok) {
                     isLiked = false;
@@ -141,11 +140,12 @@ const setBoardDetail = data => {
     viewCountElement.textContent = formatCount(data.viewCount);
 
     const commentCountElement = document.querySelector('.commentCount h3');
-    commentCountElement.textContent = data.commentCount.toLocaleString();
+    const commentCount = Array.isArray(data.comments) ? data.comments.length : 0;
+    commentCountElement.textContent = commentCount.toLocaleString();
 };
 
 const setBoardModify = async (data, myInfo) => {
-    if (myInfo.idx === data.writerId) {
+    if (parseInt(myInfo.userId, 10) === parseInt(data.writer.userId, 10)) {
         const modifyElement = document.querySelector('.hidden');
         modifyElement.classList.remove('hidden');
 
@@ -168,27 +168,25 @@ const setBoardModify = async (data, myInfo) => {
 
         const modifyBtnElement2 = document.querySelector('#modifyBtn');
         modifyBtnElement2.addEventListener('click', () => {
-            window.location.href = `/html/board-modify.html?postId=${data.id}`;
+            window.location.href = `/html/board-modify.html?postId=${data.postId}`;
         });
     }
 };
 
-const getBoardComment = async id => {
-    const { ok, status, data } = await getComments(id);
-    if (!ok) return [];
-    if (status !== HTTP_OK) return [];
-    return data;
-};
-
-const setBoardComment = (data, myInfo) => {
+const setBoardComment = (data, myInfo, postId) => {
     const commentListElement = document.querySelector('.commentList');
     if (commentListElement) {
         data.map(event => {
+            const comment = {
+                ...event,
+                author: event.writer,
+                id: event.commentId,
+            };
             const item = CommentItem(
-                event,
+                comment,
                 myInfo.userId,
-                event.postId,
-                event.id,
+                postId,
+                event.commentId,
             );
             commentListElement.appendChild(item);
         });
@@ -231,12 +229,12 @@ const inputComment = async () => {
 
 const init = async () => {
     try {
-        const data = await authCheck();
-        const myInfoResult = await data.json();
-        if (data.status !== HTTP_OK) {
+        const authState = await authCheck();
+        if (!authState.ok) {
             throw new Error('사용자 정보를 불러오는데 실패하였습니다.');
         }
 
+        const myInfoResult = await getUserInfo(authState.userId);
         const myInfo = myInfoResult.data;
         const commentBtnElement = document.querySelector('.commentInputBtn');
         const textareaElement = document.querySelector(
@@ -246,11 +244,8 @@ const init = async () => {
         commentBtnElement.addEventListener('click', addComment);
         commentBtnElement.disabled = true;
         console.log(myInfo);
-        if (data.status === HTTP_NOT_AUTHORIZED) {
-            window.location.href = '/html/login.html';
-        }
         const profileImage = resolveImageUrl(
-            myInfo.profileImageUrl,
+            myInfo.profileImgUrl ?? myInfo.profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
         );
 
@@ -260,12 +255,15 @@ const init = async () => {
 
         const pageData = await getBoardDetail(pageId);
 
-        if (parseInt(pageData.userId, 10) === parseInt(myInfo.userId, 10)) {
+        if (
+            pageData.writer &&
+            parseInt(pageData.writer.userId, 10) === parseInt(myInfo.userId, 10)
+        ) {
             setBoardModify(pageData, myInfo);
         }
         setBoardDetail(pageData);
 
-        getBoardComment(pageId).then(data => setBoardComment(data, myInfo));
+        setBoardComment(pageData.comments || [], myInfo, pageId);
     } catch (error) {
         console.error(error);
     }

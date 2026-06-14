@@ -1,11 +1,11 @@
 import BoardItem from '../component/board/boardItem.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
-import { authCheck, getServerUrl, prependChild, resolveImageUrl } from '../utils/function.js';
-import { getPosts, searchPosts } from '../api/indexRequest.js';
+import { authCheck, prependChild, resolveImageUrl } from '../utils/function.js';
+import { getPosts } from '../api/indexRequest.js';
+import { getUserInfo } from '../api/modifyInfoRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
-const HTTP_NOT_AUTHORIZED = 401;
 const SCROLL_THRESHOLD = 0.9;
 const INITIAL_OFFSET = 5;
 const ITEMS_PER_LOAD = 5;
@@ -26,19 +26,13 @@ const updateSortVisibility = () => {
 
 // getBoardItem 함수
 const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
-    const result =
-        currentKeyword.trim() === ''
-            ? await getPosts(offsetValue, limitValue)
-            : await searchPosts(
-                  currentKeyword,
-                  offsetValue,
-                  limitValue,
-                  currentSort,
-              );
+    const result = await getPosts(offsetValue, limitValue, currentKeyword);
     if (!result.ok) {
         throw new Error('Failed to load post list.');
     }
-    return result.data;
+    return result.data && Array.isArray(result.data.content)
+        ? result.data.content
+        : result.data;
 };
 
 const setBoardItem = boardData => {
@@ -47,12 +41,12 @@ const setBoardItem = boardData => {
         const itemsHtml = boardData
             .map(data =>
                 BoardItem(
-                    data.id,
+                    data.postId,
                     data.createdAt,
                     data.title,
                     data.viewCount,
-                    data.author ? data.author.profileImageUrl : null,
-                    data.author ? data.author.nickname : null,
+                    data.writer ? data.writer.profileImgUrl : null,
+                    data.writer ? data.writer.nickname : null,
                     data.commentCount,
                     data.likeCount,
                 ),
@@ -150,14 +144,15 @@ const addInfinityScrollEvent = () => {
 const init = async () => {
     try {
         const response = await authCheck();
-        const data = await response.json();
-        if (response.status === HTTP_NOT_AUTHORIZED) {
+        if (!response.ok) {
             window.location.href = '/html/login.html';
             return;
         }
+        const userInfoResponse = await getUserInfo(response.userId);
+        const data = userInfoResponse.data;
 
         const profileImageUrl = resolveImageUrl(
-            data.data.profileImageUrl,
+            data.profileImgUrl ?? data.profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
         );
 

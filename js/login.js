@@ -45,6 +45,11 @@ const loginClick = async () => {
     if (data?.accessToken) {
         localStorage.setItem('accessToken', data.accessToken);
     }
+    if (data?.userId) {
+        localStorage.setItem('userId', data.userId);
+    } else if (data?.user?.userId) {
+        localStorage.setItem('userId', data.user.userId);
+    }
 
     location.href = '/html/index.html';
 };

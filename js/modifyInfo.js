@@ -8,7 +8,7 @@ import {
     resolveImageUrl,
     validNickname,
 } from '../utils/function.js';
-import { userModify, userDelete } from '../api/modifyInfoRequest.js';
+import { getUserInfo, userModify, userDelete } from '../api/modifyInfoRequest.js';
 import { requestJson } from '../utils/request.js';
 
 const emailTextElement = document.querySelector('#id');
@@ -22,44 +22,39 @@ const resultElement = document.querySelector('.inputBox p[name="result"]');
 const modifyBtnElement = document.querySelector('#signupBtn');
 const profilePreview = document.querySelector('#profilePreview');
 const removeProfileButton = document.querySelector('#removeProfileButton');
-const authDataReponse = await authCheck();
-const authData = await authDataReponse.json();
+const authState = await authCheck();
+if (!authState.ok) {
+    throw new Error('Unauthorized');
+}
+const userId = authState.userId;
+const userInfoResponse = await getUserInfo(userId);
+const authData = { data: userInfoResponse.data };
+const getProfileImageUrl = data => data.profileImgUrl ?? data.profileImageUrl ?? null;
+const originalProfileImageUrl = getProfileImageUrl(authData.data);
+let selectedProfileImageUrl = originalProfileImageUrl;
 const changeData = {
     nickname: authData.data.nickname,
-    profileImageUrl: authData.data.profileImageUrl,
+    imageId: undefined,
 };
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_OK = 200;
-const HTTP_CREATED = 201;
+const HTTP_NO_CONTENT = 204;
 
 const setData = data => {
+    const profileImageUrl = getProfileImageUrl(data);
     if (
-        // data.profileImageUrl === DEFAULT_PROFILE_IMAGE ||
-        data.profileImageUrl === null
+        // profileImageUrl === DEFAULT_PROFILE_IMAGE ||
+        profileImageUrl === null
     ) {
         profilePreview.src = DEFAULT_PROFILE_IMAGE;
         if (removeProfileButton) removeProfileButton.style.display = 'none';
     } else {
         profilePreview.src = resolveImageUrl(
-            data.profileImageUrl,
+            profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
         );
         if (removeProfileButton) removeProfileButton.style.display = 'flex';
-
-        const profileImageUrl = data.profileImageUrl;
-        const fileName = profileImageUrl.split('/').pop();
-        localStorage.setItem('profileImageUrl', data.profileImageUrl);
-
-        const profileImage = new File(
-            [resolveImageUrl(profileImageUrl)],
-            fileName,
-            { type: '' },
-        );
-
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(profileImage);
-        profileInputElement.files = dataTransfer.files;
     }
     emailTextElement.textContent = data.email;
     nicknameInputElement.value = data.nickname;
@@ -69,7 +64,8 @@ const observeData = () => {
     const button = document.querySelector('#signupBtn');
     if (
         authData.data.nickname !== changeData.nickname ||
-        authData.data.profileImageUrl !== changeData.profileImageUrl
+        originalProfileImageUrl !== selectedProfileImageUrl ||
+        changeData.imageId !== undefined
     ) {
         button.disabled = false;
         button.style.backgroundColor = '#7F6AEE';
@@ -116,20 +112,19 @@ const changeEventHandler = async (event, uid) => {
     } else if (uid == 'profile') {
         // 사용자가 선택한 파일
         const file = event.target.files[0];
-        console.log(changeData.profileImageUrl);
         if (!file) {
-            localStorage.removeItem('profileImageUrl');
             profilePreview.src = DEFAULT_PROFILE_IMAGE;
-            changeData.profileImageUrl = null;
+            selectedProfileImageUrl = null;
+            changeData.imageId = null;
             if (removeProfileButton) removeProfileButton.style.display = 'none';
         } else {
             const formData = new FormData();
-            formData.append('profileImage', file);
+            formData.append('file', file);
 
             // 파일 업로드를 위한 POST 요청 실행
             try {
                 const { ok, data } = await requestJson(
-                    `${getServerUrl()}/v1/users/upload/profile-image`,
+                    `${getServerUrl()}/images/profile`,
                     {
                         method: 'POST',
                         body: formData,
@@ -137,13 +132,10 @@ const changeEventHandler = async (event, uid) => {
                 );
 
                 if (!ok) throw new Error('서버 응답 오류');
-                localStorage.setItem(
-                    'profileImageUrl',
-                    data.profileImageUrl,
-                );
-                changeData.profileImageUrl = data.profileImageUrl;
+                changeData.imageId = data.imageId;
+                selectedProfileImageUrl = data.storagePath;
                 profilePreview.src = resolveImageUrl(
-                    data.profileImageUrl,
+                    data.storagePath,
                     DEFAULT_PROFILE_IMAGE,
                 );
                 if (removeProfileButton)
@@ -163,14 +155,18 @@ const sendModifyData = async () => {
         if (changeData.nickname === '') {
             Dialog('필수 정보 누락', '닉네임을 입력해주세요.');
         } else {
-            const { status } = await userModify(changeData);
+            const payload = {
+                nickname: changeData.nickname,
+            };
+            if (changeData.imageId !== undefined) {
+                payload.imageId = changeData.imageId;
+            }
+            const { status } = await userModify(userId, payload);
 
-            if (status === HTTP_CREATED) {
-                localStorage.removeItem('profileImageUrl');
+            if (status === HTTP_OK) {
                 saveToastMessage('수정완료');
                 location.href = '/html/modifyInfo.html';
             } else {
-                localStorage.removeItem('profileImageUrl');
                 saveToastMessage('수정실패');
                 location.href = '/html/modifyInfo.html';
             }
@@ -181,17 +177,19 @@ const sendModifyData = async () => {
 // 회원 탈퇴
 const deleteAccount = async () => {
     const callback = async () => {
-        const { status } = await userDelete();
+        const { status } = await userDelete(userId);
 
-        if (status === HTTP_OK) {
+        if (status === HTTP_NO_CONTENT) {
             try {
-                await requestJson(`${getServerUrl()}/v1/auth/logout`, {
+                await requestJson(`${getServerUrl()}/auth/logout`, {
                     method: 'POST',
                     credentials: 'include',
                 });
             } catch (error) {
                 console.error('로그아웃 요청 실패:', error);
             }
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('userId');
             location.href = '/html/login.html';
         } else {
             Dialog('회원 탈퇴 실패', '회원 탈퇴에 실패했습니다.');
@@ -214,9 +212,9 @@ const addEvent = () => {
     );
     if (removeProfileButton) {
         removeProfileButton.addEventListener('click', () => {
-            localStorage.removeItem('profileImageUrl');
             profilePreview.src = DEFAULT_PROFILE_IMAGE;
-            changeData.profileImageUrl = null;
+            selectedProfileImageUrl = null;
+            changeData.imageId = null;
             profileInputElement.value = '';
             removeProfileButton.style.display = 'none';
             observeData();
@@ -272,7 +270,7 @@ const displayToastFromStorage = () => {
 
 const init = () => {
     const profileImage =
-        resolveImageUrl(authData.data.profileImageUrl, DEFAULT_PROFILE_IMAGE);
+        resolveImageUrl(getProfileImageUrl(authData.data), DEFAULT_PROFILE_IMAGE);
 
     prependChild(document.body, Header('커뮤니티', 2, profileImage));
     setData(authData.data);

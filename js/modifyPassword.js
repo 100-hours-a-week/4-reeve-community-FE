@@ -1,4 +1,5 @@
 import { changePassword } from '../api/modifyPasswordRequest.js';
+import { getUserInfo } from '../api/modifyInfoRequest.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
@@ -8,29 +9,41 @@ import {
     resolveImageUrl,
     validPassword,
 } from '../utils/function.js';
+import { requestJson } from '../utils/request.js';
 
 const button = document.querySelector('#signupBtn');
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
-const HTTP_CREATED = 201;
+const HTTP_NO_CONTENT = 204;
 
-const dataResponse = await authCheck();
-const data = await dataResponse.json();
+const authState = await authCheck();
+if (!authState.ok) {
+    throw new Error('Unauthorized');
+}
+const userId = authState.userId;
+const userInfoResponse = await getUserInfo(userId);
+const userInfo = userInfoResponse.data;
 const profileImage = resolveImageUrl(
-    data.data.profileImageUrl,
+    userInfo.profileImgUrl ?? userInfo.profileImageUrl,
     DEFAULT_PROFILE_IMAGE,
 );
 
 const modifyData = {
-    password: '',
+    currentPassword: '',
+    newPassword: '',
     passwordCheck: '',
 };
 
 const observeData = () => {
-    const { password, passwordCheck } = modifyData;
+    const { currentPassword, newPassword, passwordCheck } = modifyData;
 
     // id, pw, pwck, nickname, profile 값이 모두 존재하는지 확인
-    if (!password || !passwordCheck || password !== passwordCheck) {
+    if (
+        !currentPassword ||
+        !newPassword ||
+        !passwordCheck ||
+        newPassword !== passwordCheck
+    ) {
         button.disabled = true;
         button.style.backgroundColor = '#ACA0EB';
     } else {
@@ -39,8 +52,46 @@ const observeData = () => {
     }
 };
 
+const ensureCurrentPasswordInput = () => {
+    if (document.getElementById('currentPw')) return;
+
+    const passwordInput = document.getElementById('pw');
+    const passwordBox = passwordInput && passwordInput.closest('.inputBox');
+    if (!passwordBox) return;
+
+    const currentPasswordBox = document.createElement('div');
+    currentPasswordBox.className = 'inputBox';
+    currentPasswordBox.innerHTML = `
+        <label for="currentPw">현재 비밀번호</label>
+        <input
+            type="password"
+            name="currentPw"
+            id="currentPw"
+            placeholder="현재 비밀번호를 입력하세요"
+        />
+        <p class="helperText" name="currentPw"></p>
+    `;
+
+    passwordBox.parentNode.insertBefore(currentPasswordBox, passwordBox);
+};
+
 const blurEventHandler = async (event, uid) => {
-    if (uid == 'pw') {
+    if (uid == 'currentPw') {
+        const value = event.target.value;
+        const helperElement = document.querySelector(
+            `.inputBox p[name="${uid}"]`,
+        );
+
+        if (!helperElement) return;
+
+        if (value == '' || value == null) {
+            helperElement.textContent = '*현재 비밀번호를 입력해주세요.';
+            modifyData.currentPassword = '';
+        } else {
+            helperElement.textContent = '';
+            modifyData.currentPassword = value;
+        }
+    } else if (uid == 'pw') {
         const value = event.target.value;
         const isValidPassword = validPassword(value);
         const helperElement = document.querySelector(
@@ -59,9 +110,10 @@ const blurEventHandler = async (event, uid) => {
             helperElement.textContent =
                 '*비밀번호는 8자 이상, 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.';
             helperElementCheck.textContent = '';
+            modifyData.newPassword = '';
         } else {
             helperElement.textContent = '';
-            modifyData.password = value;
+            modifyData.newPassword = value;
         }
     } else if (uid == 'pwck') {
         const value = event.target.value;
@@ -69,7 +121,7 @@ const blurEventHandler = async (event, uid) => {
             `.inputBox p[name="${uid}"]`,
         );
         // pw 입력란의 현재 값
-        const password = modifyData.password;
+        const password = modifyData.newPassword;
 
         if (value == '' || value == null) {
             helperElement.textContent = '*비밀번호 한번 더 입력해주세요.';
@@ -94,20 +146,21 @@ const addEventForInputElements = () => {
 };
 
 const modifyPassword = async () => {
-    const { password } = modifyData;
+    const { currentPassword, newPassword } = modifyData;
 
-    const { status } = await changePassword(password);
+    const { status } = await changePassword(userId, currentPassword, newPassword);
 
-    if (status == HTTP_CREATED) {
+    if (status == HTTP_NO_CONTENT) {
         try {
-            await fetch(`${getServerUrl()}/v1/auth/logout`, {
+            await requestJson(`${getServerUrl()}/auth/logout`, {
                 method: 'POST',
                 credentials: 'include',
             });
         } catch (error) {
             console.error('로그아웃 요청 실패:', error);
         }
-        localStorage.clear();
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
         location.href = '/html/login.html';
     } else {
         Dialog('비밀번호 변경 실패', () => {
@@ -117,6 +170,7 @@ const modifyPassword = async () => {
 };
 
 const init = () => {
+    ensureCurrentPasswordInput();
     button.addEventListener('click', modifyPassword);
     prependChild(document.body, Header('커뮤니티', 1, profileImage));
     addEventForInputElements();
