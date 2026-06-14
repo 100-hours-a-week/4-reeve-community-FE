@@ -35,6 +35,7 @@ let selectedProfileImageUrl = originalProfileImageUrl;
 const changeData = {
     nickname: authData.data.nickname,
     imageId: undefined,
+    removeImage: false,
 };
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
@@ -94,8 +95,8 @@ const changeEventHandler = async (event, uid) => {
                 isComplete = true;
             } else if (authData.data.nickname === value) {
                 helperElement.textContent = '';
-                button.disabled = true;
-                button.style.backgroundColor = '#ACA0EB';
+                changeData.nickname = authData.data.nickname;
+                observeData();
                 return;
             } else {
                 helperElement.textContent = '*중복된 닉네임 입니다.';
@@ -116,6 +117,7 @@ const changeEventHandler = async (event, uid) => {
             profilePreview.src = DEFAULT_PROFILE_IMAGE;
             selectedProfileImageUrl = null;
             changeData.imageId = null;
+            changeData.removeImage = true;
             if (removeProfileButton) removeProfileButton.style.display = 'none';
         } else {
             const formData = new FormData();
@@ -133,6 +135,7 @@ const changeEventHandler = async (event, uid) => {
 
                 if (!ok) throw new Error('서버 응답 오류');
                 changeData.imageId = data.imageId;
+                changeData.removeImage = false;
                 selectedProfileImageUrl = data.storagePath;
                 profilePreview.src = resolveImageUrl(
                     data.storagePath,
@@ -160,6 +163,9 @@ const sendModifyData = async () => {
             };
             if (changeData.imageId !== undefined) {
                 payload.imageId = changeData.imageId;
+            }
+            if (changeData.removeImage) {
+                payload.removeImage = true;
             }
             const { status } = await userModify(userId, payload);
 
@@ -215,6 +221,7 @@ const addEvent = () => {
             profilePreview.src = DEFAULT_PROFILE_IMAGE;
             selectedProfileImageUrl = null;
             changeData.imageId = null;
+            changeData.removeImage = true;
             profileInputElement.value = '';
             removeProfileButton.style.display = 'none';
             observeData();
