@@ -1,7 +1,7 @@
 import BoardItem from '../component/board/boardItem.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
-import { authCheck, prependChild, resolveImageUrl } from '../utils/function.js';
+import { prependChild, resolveImageUrl } from '../utils/function.js';
 import { getPosts } from '../api/indexRequest.js';
 import { getUserInfo } from '../api/modifyInfoRequest.js';
 
@@ -113,6 +113,23 @@ const addSearchEvent = () => {
     });
 };
 
+const showLoginRequiredDialog = () => {
+    Dialog('로그인이 필요합니다', '로그인 후 이용해주세요.', () => {
+        window.location.href = '/html/login.html';
+    });
+};
+
+const addWriteEvent = () => {
+    const writeLink = document.querySelector('#writeLink');
+    if (!writeLink) return;
+
+    writeLink.addEventListener('click', event => {
+        if (localStorage.getItem('accessToken')) return;
+        event.preventDefault();
+        showLoginRequiredDialog();
+    });
+};
+
 const addSortEvent = () => {
     const sortSelect = document.querySelector('#searchSortSelect');
     if (!sortSelect) return;
@@ -141,30 +158,38 @@ const addInfinityScrollEvent = () => {
     });
 };
 
-const init = async () => {
-    try {
-        const response = await authCheck();
-        if (!response.ok) {
-            window.location.href = '/html/login.html';
-            return;
-        }
-        const userInfoResponse = await getUserInfo(response.userId);
-        const data = userInfoResponse.data;
+const getHeaderProfileImage = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+    if (!accessToken || !userId) return null;
 
-        const profileImageUrl = resolveImageUrl(
+    try {
+        const userInfoResponse = await getUserInfo(userId);
+        const data = userInfoResponse.data;
+        return resolveImageUrl(
             data.profileImgUrl ?? data.profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
         );
+    } catch (error) {
+        console.error('Failed to load user info:', error);
+        return null;
+    }
+};
+
+const init = async () => {
+    try {
+        const profileImageUrl = await getHeaderProfileImage();
 
         prependChild(
             document.body,
-            Header('Community', 0, profileImageUrl),
+            Header('Community', 0, profileImageUrl, !profileImageUrl),
         );
 
         updateSortVisibility();
         await loadBoardItems({ reset: true });
 
         addSearchEvent();
+        addWriteEvent();
         addSortEvent();
         addInfinityScrollEvent();
     } catch (error) {

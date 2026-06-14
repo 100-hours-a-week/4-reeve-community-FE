@@ -14,6 +14,7 @@ export const getPosts = (offset, limit, keyword = '') => {
     const result = requestJson(
         `${getServerUrl()}/posts?${query.toString()}`,
         {
+            skipAuth: true,
             credentials: 'include',
         },
     );

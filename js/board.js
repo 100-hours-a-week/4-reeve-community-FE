@@ -2,7 +2,6 @@ import CommentItem from '../component/comment/comment.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
-    authCheck,
     prependChild,
     padTo2Digits,
     resolveImageUrl,
@@ -35,6 +34,14 @@ const setLikeButtonState = (button, isLiked) => {
     button.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
 };
 
+const isLoggedIn = () => !!localStorage.getItem('accessToken');
+
+const showLoginRequiredDialog = () => {
+    Dialog('로그인이 필요합니다', '로그인 후 이용해주세요.', () => {
+        window.location.href = '/html/login.html';
+    });
+};
+
 const getQueryString = name => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
@@ -42,9 +49,24 @@ const getQueryString = name => {
 
 const getBoardDetail = async postId => {
     const { ok, data } = await getPost(postId);
-    if (!ok)
-        return new Error('게시글 정보를 가져오는데 실패하였습니다.');
+    if (!ok) {
+        throw new Error('게시글 정보를 가져오는데 실패하였습니다.');
+    }
     return data;
+};
+
+const getCurrentUserInfo = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+    if (!accessToken || !userId) return null;
+
+    try {
+        const myInfoResult = await getUserInfo(userId);
+        return myInfoResult.data;
+    } catch (error) {
+        console.error('사용자 정보를 불러오는데 실패하였습니다.', error);
+        return null;
+    }
 };
 
 const setBoardDetail = data => {
@@ -88,6 +110,10 @@ const setBoardDetail = data => {
     setLikeButtonState(likeButtonElement, isLiked);
 
     likeButtonElement.addEventListener('click', async () => {
+        if (!isLoggedIn()) {
+            showLoginRequiredDialog();
+            return;
+        }
         if (isLikeLoading) return;
         isLikeLoading = true;
 
@@ -102,7 +128,7 @@ const setBoardDetail = data => {
                     setLikeButtonState(likeButtonElement, isLiked);
                     likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
-                    window.location.href = '/html/login.html';
+                    showLoginRequiredDialog();
                 } else {
                     Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
                 }
@@ -116,7 +142,7 @@ const setBoardDetail = data => {
                     setLikeButtonState(likeButtonElement, isLiked);
                     likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
-                    window.location.href = '/html/login.html';
+                    showLoginRequiredDialog();
                 } else {
                     Dialog('좋아요 취소 실패', '좋아요 취소에 실패하였습니다.');
                 }
@@ -174,7 +200,7 @@ const setBoardComment = (data, myInfo, postId) => {
             };
             const item = CommentItem(
                 comment,
-                myInfo.userId,
+                myInfo ? myInfo.userId : null,
                 postId,
                 event.commentId,
             );
@@ -184,6 +210,11 @@ const setBoardComment = (data, myInfo, postId) => {
 };
 
 const addComment = async () => {
+    if (!isLoggedIn()) {
+        showLoginRequiredDialog();
+        return;
+    }
+
     const comment = document.querySelector('textarea').value;
     const pageId = getQueryString('id');
 
@@ -219,13 +250,7 @@ const inputComment = async () => {
 
 const init = async () => {
     try {
-        const authState = await authCheck();
-        if (!authState.ok) {
-            throw new Error('사용자 정보를 불러오는데 실패하였습니다.');
-        }
-
-        const myInfoResult = await getUserInfo(authState.userId);
-        const myInfo = myInfoResult.data;
+        const myInfo = await getCurrentUserInfo();
         const commentBtnElement = document.querySelector('.commentInputBtn');
         const textareaElement = document.querySelector(
             '.commentInputWrap textarea',
@@ -233,19 +258,21 @@ const init = async () => {
         textareaElement.addEventListener('input', inputComment);
         commentBtnElement.addEventListener('click', addComment);
         commentBtnElement.disabled = true;
-        console.log(myInfo);
-        const profileImage = resolveImageUrl(
-            myInfo.profileImgUrl ?? myInfo.profileImageUrl,
-            DEFAULT_PROFILE_IMAGE,
-        );
+        const profileImage = myInfo
+            ? resolveImageUrl(
+                  myInfo.profileImgUrl ?? myInfo.profileImageUrl,
+                  DEFAULT_PROFILE_IMAGE,
+              )
+            : null;
 
-        prependChild(document.body, Header('커뮤니티', 2, profileImage));
+        prependChild(document.body, Header('커뮤니티', 2, profileImage, !myInfo));
 
         const pageId = getQueryString('id');
 
         const pageData = await getBoardDetail(pageId);
 
         if (
+            myInfo &&
             pageData.writer &&
             parseInt(pageData.writer.userId, 10) === parseInt(myInfo.userId, 10)
         ) {

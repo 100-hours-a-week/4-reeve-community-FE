@@ -1,7 +1,6 @@
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
-    authCheck,
     getQueryString,
     prependChild,
     resolveImageUrl,
@@ -39,6 +38,26 @@ const boardWrite = {
 let isModifyMode = false;
 let modifyData = {};
 let removeImage = false;
+
+const showLoginRequiredDialog = () => {
+    Dialog('로그인이 필요합니다', '로그인 후 이용해주세요.', () => {
+        window.location.href = '/html/login.html';
+    });
+};
+
+const getCurrentUserInfo = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const userId = localStorage.getItem('userId');
+    if (!accessToken || !userId) return null;
+
+    try {
+        const userInfoResponse = await getUserInfo(userId);
+        return userInfoResponse.data;
+    } catch (error) {
+        console.error('사용자 정보를 불러오는데 실패하였습니다.', error);
+        return null;
+    }
+};
 
 const observeSignupData = () => {
     const { title, content } = boardWrite;
@@ -220,13 +239,13 @@ const setModifyData = data => {
 
 const init = async () => {
     localStorage.removeItem('postImageId');
-    const authState = await authCheck();
-    if (!authState.ok) {
+    const myInfo = await getCurrentUserInfo();
+    if (!myInfo) {
+        prependChild(document.body, Header('커뮤니티', 1, null, true));
+        showLoginRequiredDialog();
         return;
     }
-    const userId = authState.userId;
-    const userInfoResponse = await getUserInfo(userId);
-    const myInfo = userInfoResponse.data;
+    const userId = myInfo.userId;
     const modifyId = checkModifyMode();
 
     const profileImage = resolveImageUrl(

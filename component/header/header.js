@@ -46,6 +46,7 @@ const Header = (
     title,
     leftBtn = 0,
     profileImage = null,
+    showLoginLink = false,
 ) => {
     let leftBtnElement;
     let rightBtnElement;
@@ -85,6 +86,11 @@ const Header = (
 
         rightBtnElement.appendChild(profileElement);
         rightBtnElement.appendChild(Drop);
+    } else if (showLoginLink) {
+        rightBtnElement = document.createElement('a');
+        rightBtnElement.classList.add('loginLink');
+        rightBtnElement.href = '/html/login.html';
+        rightBtnElement.textContent = '로그인';
     }
 
     h1Element = document.createElement('h1');
