@@ -3,7 +3,7 @@ import Dialog from '../dialog/dialog.js';
 import { deleteComment, updateComment } from '../../api/commentRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
-const HTTP_OK = 200;
+const HTTP_NO_CONTENT = 204;
 
 const CommentItem = (data, writerId, postId, commentId) => {
     const CommentDelete = () => {
@@ -17,7 +17,7 @@ const CommentItem = (data, writerId, postId, commentId) => {
                     return;
                 }
 
-                if (status === HTTP_OK)
+                if (status === HTTP_NO_CONTENT)
                     location.href = '/html/board.html?id=' + postId;
             },
         );
@@ -64,7 +64,7 @@ const CommentItem = (data, writerId, postId, commentId) => {
             // 서버로 수정된 댓글 내용 전송하는 로직
             const updatedContent = textarea.value;
             const sendData = {
-                commentContent: updatedContent,
+                content: updatedContent,
             };
 
             const { ok } = await updateComment(postId, commentId, sendData);

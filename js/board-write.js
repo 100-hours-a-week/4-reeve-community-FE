@@ -3,10 +3,10 @@ import Header from '../component/header/header.js';
 import {
     authCheck,
     getQueryString,
-    getServerUrl,
     prependChild,
     resolveImageUrl,
 } from '../utils/function.js';
+import { getUserInfo } from '../api/modifyInfoRequest.js';
 import {
     createPost,
     fileUpload,
@@ -38,6 +38,7 @@ const boardWrite = {
 
 let isModifyMode = false;
 let modifyData = {};
+let removeImage = false;
 
 const observeSignupData = () => {
     const { title, content } = boardWrite;
@@ -52,13 +53,12 @@ const observeSignupData = () => {
 
 // 엘리먼트 값 가져오기 title, content
 const getBoardData = () => {
+    const postImageId = localStorage.getItem('postImageId');
     return {
         title: boardWrite.title,
         content: boardWrite.content,
-        attachFileUrl:
-            localStorage.getItem('postFileUrl') === null
-                ? undefined
-                : localStorage.getItem('postFileUrl'),
+        imageId: postImageId === null ? null : Number(postImageId),
+        removeImage,
     };
 };
 
@@ -77,8 +77,9 @@ const addBoard = async () => {
         if (!ok) throw new Error('서버 응답 오류');
 
         if (status === HTTP_CREATED) {
-            localStorage.removeItem('postFileUrl');
-            window.location.href = `/html/board.html?id=${data.insertId}`;
+            localStorage.removeItem('postImageId');
+            removeImage = false;
+            window.location.href = `/html/board.html?id=${data.postId}`;
         } else {
             const helperElement = contentHelpElement;
             helperElement.textContent = '제목, 내용을 모두 작성해주세요.';
@@ -94,7 +95,8 @@ const addBoard = async () => {
         if (!ok) throw new Error('서버 응답 오류');
 
         if (status === HTTP_OK) {
-            localStorage.removeItem('postFileUrl');
+            localStorage.removeItem('postImageId');
+            removeImage = false;
             window.location.href = `/html/board.html?id=${postId}`;
         } else {
             Dialog('게시글', '게시글 수정 실패');
@@ -138,18 +140,22 @@ const changeEventHandler = async (event, uid) => {
         }
 
         const formData = new FormData();
-        formData.append('postFile', file);
+        formData.append('file', file);
 
         // 파일 업로드를 위한 POST 요청 실행
         try {
             const { ok, data } = await fileUpload(formData);
             if (!ok) throw new Error('서버 응답 오류');
-            localStorage.setItem('postFileUrl', data.fileUrl);
+            localStorage.setItem('postImageId', data.imageId);
+            removeImage = false;
+            imagePreviewText.textContent = file.name;
+            imagePreviewText.style.display = 'block';
         } catch (error) {
             console.error('업로드 중 오류 발생:', error);
         }
     } else if (uid === 'imagePreviewText') {
-        localStorage.removeItem('postFileUrl');
+        localStorage.removeItem('postImageId');
+        removeImage = true;
         imagePreviewText.style.display = 'none';
     }
 
@@ -189,31 +195,18 @@ const addEvent = () => {
 };
 
 const setModifyData = data => {
+    removeImage = false;
     titleInput.value = data.title;
     contentInput.value = data.content;
 
-    const fileUrl = data.fileUrl || resolveImageUrl(data.filePath);
+    localStorage.removeItem('postImageId');
+    const fileUrl = data.imageUrl;
     if (fileUrl) {
         // fileUrl에서 파일 이름만 추출하여 표시
         const fileName = fileUrl.split('/').pop();
         imagePreviewText.innerHTML =
             fileName + `<span class="deleteFile">X</span>`;
         imagePreviewText.style.display = 'block';
-        localStorage.setItem('postFileUrl', fileUrl);
-
-        // 이제 추출된 파일명을 사용하여 File 객체를 생성
-        const attachFile = new File(
-            // 실제 이미지 데이터 대신 URL을 사용
-            [fileUrl],
-            // 추출된 파일명
-            fileName,
-            // MIME 타입 지정, 실제 이미지 타입에 맞게 조정 필요
-            { type: '' },
-        );
-
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(attachFile);
-        imageInput.files = dataTransfer.files;
     } else {
         // 이미지 파일이 없으면 미리보기 숨김
         imagePreviewText.style.display = 'none';
@@ -226,12 +219,18 @@ const setModifyData = data => {
 };
 
 const init = async () => {
-    const dataResponse = await authCheck();
-    const data = await dataResponse.json();
+    localStorage.removeItem('postImageId');
+    const authState = await authCheck();
+    if (!authState.ok) {
+        return;
+    }
+    const userId = authState.userId;
+    const userInfoResponse = await getUserInfo(userId);
+    const myInfo = userInfoResponse.data;
     const modifyId = checkModifyMode();
 
     const profileImage = resolveImageUrl(
-        data.data.profileImageUrl,
+        myInfo.profileImgUrl ?? myInfo.profileImageUrl,
         DEFAULT_PROFILE_IMAGE,
     );
 
@@ -241,7 +240,10 @@ const init = async () => {
         isModifyMode = true;
         modifyData = await getBoardModifyData(modifyId);
 
-        if (data.idx !== modifyData.writerId) {
+        if (
+            !modifyData.writer ||
+            parseInt(userId, 10) !== parseInt(modifyData.writer.userId, 10)
+        ) {
             Dialog('권한 없음', '권한이 없습니다.', () => {
                 window.location.href = '/';
             });

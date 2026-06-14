@@ -19,7 +19,8 @@ import {
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const MAX_COMMENT_LENGTH = 1000;
 const HTTP_NOT_AUTHORIZED = 401;
-const HTTP_OK = 200;
+const HTTP_CREATED = 201;
+const HTTP_NO_CONTENT = 204;
 
 const formatCount = value => {
     const count = Number(value);
@@ -79,10 +80,11 @@ const setBoardDetail = data => {
 
     const likeButtonElement = document.querySelector('.likeButton');
     const likeCountElement = likeButtonElement.querySelector('h3');
-    let isLiked = Boolean(data.isLiked);
+    let isLiked = false;
     let isLikeLoading = false;
+    let likeCount = Number(data.likeCount) || 0;
 
-    likeCountElement.textContent = formatCount(data.likeCount);
+    likeCountElement.textContent = formatCount(likeCount);
     setLikeButtonState(likeButtonElement, isLiked);
 
     likeButtonElement.addEventListener('click', async () => {
@@ -91,40 +93,28 @@ const setBoardDetail = data => {
 
         try {
             if (!isLiked) {
-                const { ok, status, code, data: likeData } = await likePost(
+                const { status } = await likePost(
                     data.postId,
                 );
-                if (ok) {
+                if (status === HTTP_CREATED) {
                     isLiked = true;
+                    likeCount += 1;
                     setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_LIKED') {
-                    isLiked = true;
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
                 } else {
                     Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
                 }
             } else {
-                const { ok, status, code, data: likeData } = await unlikePost(
+                const { status } = await unlikePost(
                     data.postId,
                 );
-                if (ok) {
+                if (status === HTTP_NO_CONTENT) {
                     isLiked = false;
+                    likeCount = Math.max(0, likeCount - 1);
                     setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_UNLIKED') {
-                    isLiked = false;
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
                 } else {
