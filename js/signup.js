@@ -11,7 +11,6 @@ import {
     userSignup,
     checkEmail,
     checkNickname,
-    fileUpload,
 } from '../api/signupRequest.js';
 
 const MAX_PASSWORD_LENGTH = 20;
@@ -22,8 +21,8 @@ const signupData = {
     email: '',
     password: '',
     nickname: '',
-    profileImageUrl: undefined,
 };
+let selectedFile = null;
 
 const getSignupData = () => {
     const { email, password, passwordCheck, nickname } = signupData;
@@ -37,20 +36,26 @@ const getSignupData = () => {
 
 const sendSignupData = async () => {
     const { passwordCheck, ...props } = signupData;
-    if (localStorage.getItem('profileImageUrl')) {
-        props.profileImageUrl = localStorage.getItem('profileImageUrl');
-    }
 
-    if (props.password > MAX_PASSWORD_LENGTH) {
+    if (props.password.length > MAX_PASSWORD_LENGTH) {
         Dialog('비밀번호', '비밀번호는 20자 이하로 입력해주세요.');
         return;
     }
+
+    const formData = new FormData();
+    formData.append(
+        'userData',
+        new Blob([JSON.stringify(props)], { type: 'application/json' }),
+    );
+    if (selectedFile) {
+        formData.append('file', selectedFile);
+    }
+
     // signupData를 서버로 전송
-    const { status, code } = await userSignup(props);
+    const { status, code } = await userSignup(formData);
 
     // 응답이 성공적으로 왔을 경우
     if (status === HTTP_CREATED) {
-        localStorage.removeItem('profileImageUrl');
         location.href = '/html/login.html';
     } else {
         if (code === 'ALREADY_EXIST_EMAIL') {
@@ -62,7 +67,6 @@ const sendSignupData = async () => {
         } else {
             Dialog('회원 가입 실패', '잠시 뒤 다시 시도해 주세요', () => {});
         }
-        localStorage.removeItem('profileImageUrl');
         location.href = '/html/signup.html';
     }
 };
@@ -76,6 +80,7 @@ const signupClick = () => {
 const changeEventHandler = async (event, uid) => {
     if (uid == 'profile') {
         const file = event.target.files[0];
+        selectedFile = file || null;
         if (!file) return;
 
         const helperElement = document.querySelector(
@@ -230,40 +235,12 @@ const observeSignupData = () => {
     }
 };
 
-const uploadProfileImage = () => {
-    document
-        .getElementById('profile')
-        .addEventListener('change', async event => {
-            const file = event.target.files[0];
-            if (!file) {
-                console.log('파일이 선택되지 않았습니다.');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            // 파일 업로드를 위한 POST 요청 실행
-            try {
-                const { ok, data } = await fileUpload(formData);
-                if (!ok) throw new Error('서버 응답 오류');
-                localStorage.setItem(
-                    'profileImageUrl',
-                    data.profileImageUrl,
-                );
-            } catch (error) {
-                console.error('업로드 중 오류 발생:', error);
-            }
-        });
-};
-
 const init = async () => {
     await authCheckReverse();
     prependChild(document.body, Header('커뮤니티', 1));
     observeSignupData();
     addEventForInputElements();
     signupClick();
-    uploadProfileImage();
 };
 
 init();

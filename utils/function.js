@@ -23,17 +23,14 @@ export const resolveImageUrl = (url, fallback = null) => {
 };
 
 export const serverSessionCheck = async () => {
-    const res = await fetch(`${getServerUrl()}/v1/auth/check`, {
-        method: 'GET',
-        credentials: 'include',
-    });
-    return res;
+    const token = localStorage.getItem('accessToken');
+
+    return { ok: !!token };
 };
 
 export const authCheck = async () => {
-    const HTTP_OK = 200;
     const response = await serverSessionCheck();
-    if (!response || response.status !== HTTP_OK)
+    if (!response || !response.ok)
         location.href = '/html/login.html';
     return response;
 };

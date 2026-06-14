@@ -22,7 +22,7 @@ const loginClick = async () => {
     const { id: email, password } = loginData;
     const helperTextElement = document.querySelector('.helperText');
 
-    const { ok, status, code } = await userLogin(email, password);
+    const { ok, status, code, data } = await userLogin(email, password);
     if (!ok) {
         updateHelperText(
             helperTextElement,
@@ -41,6 +41,10 @@ const loginClick = async () => {
         return;
     }
     updateHelperText(helperTextElement);
+
+    if (data?.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+    }
 
     location.href = '/html/index.html';
 };

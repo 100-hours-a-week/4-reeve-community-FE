@@ -11,7 +11,17 @@ export const parseJsonSafe = async response => {
 };
 
 export const requestJson = async (url, options = {}) => {
-    const response = await fetch(url, options);
+    const accessToken = localStorage.getItem('accessToken');
+    const headers = accessToken
+        ? {
+              ...options.headers,
+              Authorization: `Bearer ${accessToken}`,
+          }
+        : options.headers;
+    const response = await fetch(url, {
+        ...options,
+        headers,
+    });
     const body = await parseJsonSafe(response);
     return {
         response,
