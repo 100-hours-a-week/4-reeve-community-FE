@@ -1,3 +1,5 @@
+import Dialog from '../component/dialog/dialog.js';
+
 /*
 Step 1 확인:
 - 리프레시 토큰 엔드포인트: POST /auth/refreshToken
@@ -84,6 +86,10 @@ export const requestJson = async (url, options = {}) => {
         return result;
     }
 
+    if (!accessToken) {
+        return result;
+    }
+
     if (isRefreshing) {
         return new Promise((resolve, reject) => {
             refreshSubscribers.push({
@@ -133,5 +139,22 @@ export const requestJson = async (url, options = {}) => {
         isRefreshing = false;
         window.location.href = '/html/login.html';
         return;
+    }
+};
+
+export const handleApiError = (status, body) => {
+    if (status === 400) {
+        Dialog(
+            '오류',
+            body?.message || body?.error?.message || '잘못된 요청입니다.',
+        );
+    } else if (status === 403) {
+        Dialog('오류', '권한이 없습니다.');
+    } else if (status === 404) {
+        Dialog('오류', '존재하지 않는 리소스입니다.');
+    } else if (status >= 500) {
+        Dialog('오류', '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } else {
+        Dialog('오류', '알 수 없는 오류가 발생했습니다.');
     }
 };

@@ -5,6 +5,7 @@ import {
     validEmail,
 } from '../utils/function.js';
 import { userLogin } from '../api/loginRequest.js';
+import { handleApiError } from '../utils/request.js';
 
 const HTTP_OK = 200;
 const MAX_PASSWORD_LENGTH = 8;
@@ -22,14 +23,9 @@ const loginClick = async () => {
     const { id: email, password } = loginData;
     const helperTextElement = document.querySelector('.helperText');
 
-    const { ok, status, code, data } = await userLogin(email, password);
+    const { ok, status, data, body } = await userLogin(email, password);
     if (!ok) {
-        updateHelperText(
-            helperTextElement,
-            code === 'INVALID_INPUT'
-                ? '*입력값을 확인해주세요.'
-                : '*입력하신 계정 정보가 정확하지 않았습니다.',
-        );
+        handleApiError(status, body);
         return;
     }
 
@@ -98,19 +94,11 @@ const eventSet = () => {
         }
     });
 
-    document
-        .getElementById('id')
-        .addEventListener('input', event => validateEmail(event.target));
 };
 
 const onChangeHandler = (event, uid) => {
     loginData[uid] = event.target.value;
     observeSignupData();
-};
-
-const validateEmail = input => {
-    const regex = /^[A-Za-z0-9@.]+$/;
-    if (!regex.test(input.value)) input.value = input.value.slice(0, -1);
 };
 
 let lottieInstance = null;

@@ -12,6 +12,7 @@ import {
     checkEmail,
     checkNickname,
 } from '../api/signupRequest.js';
+import { handleApiError } from '../utils/request.js';
 
 const MAX_PASSWORD_LENGTH = 20;
 const HTTP_OK = 200;
@@ -52,7 +53,7 @@ const sendSignupData = async () => {
     }
 
     // signupData를 서버로 전송
-    const { status, code } = await userSignup(formData);
+    const { status, code, body } = await userSignup(formData);
 
     // 응답이 성공적으로 왔을 경우
     if (status === HTTP_CREATED) {
@@ -65,7 +66,7 @@ const sendSignupData = async () => {
         } else if (code === 'INVALID_INPUT') {
             Dialog('회원 가입 실패', '입력값을 확인해주세요.');
         } else {
-            Dialog('회원 가입 실패', '잠시 뒤 다시 시도해 주세요', () => {});
+            handleApiError(status, body);
         }
         location.href = '/html/signup.html';
     }

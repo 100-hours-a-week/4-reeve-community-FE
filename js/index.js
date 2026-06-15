@@ -4,6 +4,7 @@ import Header from '../component/header/header.js';
 import { prependChild, resolveImageUrl } from '../utils/function.js';
 import { getPosts } from '../api/indexRequest.js';
 import { getUserInfo } from '../api/modifyInfoRequest.js';
+import { handleApiError } from '../utils/request.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const SCROLL_THRESHOLD = 0.9;
@@ -28,7 +29,8 @@ const updateSortVisibility = () => {
 const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
     const result = await getPosts(offsetValue, limitValue, currentKeyword);
     if (!result.ok) {
-        throw new Error('Failed to load post list.');
+        handleApiError(result.status, result.body);
+        return [];
     }
     return result.data && Array.isArray(result.data.content)
         ? result.data.content

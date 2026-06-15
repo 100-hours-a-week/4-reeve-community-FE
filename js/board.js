@@ -14,10 +14,10 @@ import {
     likePost,
     unlikePost,
 } from '../api/boardRequest.js';
+import { handleApiError } from '../utils/request.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const MAX_COMMENT_LENGTH = 1000;
-const HTTP_NOT_AUTHORIZED = 401;
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
 
@@ -48,9 +48,10 @@ const getQueryString = name => {
 };
 
 const getBoardDetail = async postId => {
-    const { ok, data } = await getPost(postId);
+    const { ok, status, data, body } = await getPost(postId);
     if (!ok) {
-        throw new Error('게시글 정보를 가져오는데 실패하였습니다.');
+        handleApiError(status, body);
+        return null;
     }
     return data;
 };
@@ -119,7 +120,7 @@ const setBoardDetail = data => {
 
         try {
             if (!isLiked) {
-                const { status } = await likePost(
+                const { ok, status, body } = await likePost(
                     data.postId,
                 );
                 if (status === HTTP_CREATED) {
@@ -127,13 +128,13 @@ const setBoardDetail = data => {
                     likeCount += 1;
                     setLikeButtonState(likeButtonElement, isLiked);
                     likeCountElement.textContent = formatCount(likeCount);
-                } else if (status === HTTP_NOT_AUTHORIZED) {
-                    showLoginRequiredDialog();
+                } else if (!ok) {
+                    handleApiError(status, body);
                 } else {
                     Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
                 }
             } else {
-                const { status } = await unlikePost(
+                const { ok, status, body } = await unlikePost(
                     data.postId,
                 );
                 if (status === HTTP_NO_CONTENT) {
@@ -141,8 +142,8 @@ const setBoardDetail = data => {
                     likeCount = Math.max(0, likeCount - 1);
                     setLikeButtonState(likeButtonElement, isLiked);
                     likeCountElement.textContent = formatCount(likeCount);
-                } else if (status === HTTP_NOT_AUTHORIZED) {
-                    showLoginRequiredDialog();
+                } else if (!ok) {
+                    handleApiError(status, body);
                 } else {
                     Dialog('좋아요 취소 실패', '좋아요 취소에 실패하였습니다.');
                 }
@@ -172,11 +173,11 @@ const setBoardModify = async (data, myInfo) => {
                 '게시글을 삭제하시겠습니까?',
                 '삭제한 내용은 복구 할 수 없습니다.',
                 async () => {
-                    const { ok } = await deletePost(postId);
+                    const { ok, status, body } = await deletePost(postId);
                     if (ok) {
                         window.location.href = '/';
                     } else {
-                        Dialog('삭제 실패', '게시글 삭제에 실패하였습니다.');
+                        handleApiError(status, body);
                     }
                 },
             );
@@ -218,12 +219,12 @@ const addComment = async () => {
     const comment = document.querySelector('textarea').value;
     const pageId = getQueryString('id');
 
-    const { ok } = await writeComment(pageId, comment);
+    const { ok, status, body } = await writeComment(pageId, comment);
 
     if (ok) {
         window.location.reload();
     } else {
-        Dialog('댓글 등록 실패', '댓글 등록에 실패하였습니다.');
+        handleApiError(status, body);
     }
 };
 
@@ -270,6 +271,7 @@ const init = async () => {
         const pageId = getQueryString('id');
 
         const pageData = await getBoardDetail(pageId);
+        if (!pageData) return;
 
         if (
             myInfo &&

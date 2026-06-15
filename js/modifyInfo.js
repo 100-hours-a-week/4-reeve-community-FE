@@ -9,7 +9,7 @@ import {
     validNickname,
 } from '../utils/function.js';
 import { getUserInfo, userModify, userDelete } from '../api/modifyInfoRequest.js';
-import { requestJson } from '../utils/request.js';
+import { handleApiError, requestJson } from '../utils/request.js';
 
 const emailTextElement = document.querySelector('#id');
 const nicknameInputElement = document.querySelector('#nickname');
@@ -125,7 +125,7 @@ const changeEventHandler = async (event, uid) => {
 
             // 파일 업로드를 위한 POST 요청 실행
             try {
-                const { ok, data } = await requestJson(
+                const { ok, status, data, body } = await requestJson(
                     `${getServerUrl()}/images/profile`,
                     {
                         method: 'POST',
@@ -133,7 +133,10 @@ const changeEventHandler = async (event, uid) => {
                     },
                 );
 
-                if (!ok) throw new Error('서버 응답 오류');
+                if (!ok) {
+                    handleApiError(status, body);
+                    return;
+                }
                 changeData.imageId = data.imageId;
                 changeData.removeImage = false;
                 selectedProfileImageUrl = data.storagePath;
@@ -165,7 +168,11 @@ const sendModifyData = async () => {
             };
 
             try {
-                const { status } = await userModify(userId, payload);
+                const { ok, status, body } = await userModify(userId, payload);
+                if (!ok) {
+                    handleApiError(status, body);
+                    return;
+                }
                 if (status === HTTP_OK) {
                     saveToastMessage('수정완료');
                     location.href = '/html/modifyInfo.html';
@@ -185,7 +192,12 @@ const sendModifyData = async () => {
 // 회원 탈퇴
 const deleteAccount = async () => {
     const callback = async () => {
-        const { status } = await userDelete(userId);
+        const { ok, status, body } = await userDelete(userId);
+
+        if (!ok) {
+            handleApiError(status, body);
+            return;
+        }
 
         if (status === HTTP_NO_CONTENT) {
             try {
@@ -200,7 +212,7 @@ const deleteAccount = async () => {
             localStorage.removeItem('userId');
             location.href = '/html/login.html';
         } else {
-            Dialog('회원 탈퇴 실패', '회원 탈퇴에 실패했습니다.');
+            handleApiError(status, body);
         }
     };
 

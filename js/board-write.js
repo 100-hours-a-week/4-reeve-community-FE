@@ -12,6 +12,7 @@ import {
     updatePost,
     getBoardItem,
 } from '../api/board-writeRequest.js';
+import { handleApiError } from '../utils/request.js';
 
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
@@ -92,8 +93,11 @@ const addBoard = async () => {
         return Dialog('게시글', '제목은 26자 이하로 입력해주세요.');
 
     if (!isModifyMode) {
-        const { ok, status, data } = await createPost(boardData);
-        if (!ok) throw new Error('서버 응답 오류');
+        const { ok, status, data, body } = await createPost(boardData);
+        if (!ok) {
+            handleApiError(status, body);
+            return;
+        }
 
         if (status === HTTP_CREATED) {
             localStorage.removeItem('postImageId');
@@ -110,8 +114,11 @@ const addBoard = async () => {
             ...boardData,
         };
 
-        const { ok, status } = await updatePost(postId, setData);
-        if (!ok) throw new Error('서버 응답 오류');
+        const { ok, status, body } = await updatePost(postId, setData);
+        if (!ok) {
+            handleApiError(status, body);
+            return;
+        }
 
         if (status === HTTP_OK) {
             localStorage.removeItem('postImageId');
@@ -163,8 +170,11 @@ const changeEventHandler = async (event, uid) => {
 
         // 파일 업로드를 위한 POST 요청 실행
         try {
-            const { ok, data } = await fileUpload(formData);
-            if (!ok) throw new Error('서버 응답 오류');
+            const { ok, status, data, body } = await fileUpload(formData);
+            if (!ok) {
+                handleApiError(status, body);
+                return;
+            }
             localStorage.setItem('postImageId', data.imageId);
             removeImage = false;
             imagePreviewText.textContent = file.name;
@@ -182,8 +192,11 @@ const changeEventHandler = async (event, uid) => {
 };
 // 수정모드시 사용하는 게시글 단건 정보 가져오기
 const getBoardModifyData = async postId => {
-    const { ok, data } = await getBoardItem(postId);
-    if (!ok) throw new Error('서버 응답 오류');
+    const { ok, status, data, body } = await getBoardItem(postId);
+    if (!ok) {
+        handleApiError(status, body);
+        return null;
+    }
     return data;
 };
 
@@ -258,6 +271,7 @@ const init = async () => {
     if (modifyId) {
         isModifyMode = true;
         modifyData = await getBoardModifyData(modifyId);
+        if (!modifyData) return;
 
         if (
             !modifyData.writer ||
