@@ -1,5 +1,6 @@
 import { changePassword } from '../api/modifyPasswordRequest.js';
 import { getUserInfo } from '../api/modifyInfoRequest.js';
+import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
     authCheck,
@@ -8,7 +9,7 @@ import {
     resolveImageUrl,
     validPassword,
 } from '../utils/function.js';
-import { handleApiError, requestJson } from '../utils/request.js';
+import { requestJson } from '../utils/request.js';
 
 const button = document.querySelector('#signupBtn');
 
@@ -147,16 +148,7 @@ const addEventForInputElements = () => {
 const modifyPassword = async () => {
     const { currentPassword, newPassword } = modifyData;
 
-    const { ok, status, body } = await changePassword(
-        userId,
-        currentPassword,
-        newPassword,
-    );
-
-    if (!ok) {
-        handleApiError(status, body);
-        return;
-    }
+    const { status } = await changePassword(userId, currentPassword, newPassword);
 
     if (status == HTTP_NO_CONTENT) {
         try {
@@ -171,7 +163,9 @@ const modifyPassword = async () => {
         localStorage.removeItem('userId');
         location.href = '/html/login.html';
     } else {
-        handleApiError(status, body);
+         Dialog('비밀번호 변경 실패', '비밀번호 변경에 실패했습니다.', () => {
+         location.href = '/html/modifyPassword.html';
+     });
     }
 };
 

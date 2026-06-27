@@ -1,4 +1,5 @@
 import Dialog from '../component/dialog/dialog.js';
+import { getServerUrl } from './function.js';
 
 /*
 Step 1 확인:
@@ -48,8 +49,8 @@ const getRequestPath = url => {
     }
 };
 
-const getRefreshUrl = url => {
-    return new URL(REFRESH_ENDPOINT_PATH, url).toString();
+const getRefreshUrl = () => {
+    return `${getServerUrl()}/auth/refreshToken`;
 };
 
 const retryRequestWithAccessToken = async (url, fetchOptions, accessToken) => {
@@ -110,7 +111,7 @@ export const requestJson = async (url, options = {}) => {
     isRefreshing = true;
 
     try {
-        const refreshResponse = await fetch(getRefreshUrl(url), {
+        const refreshResponse = await fetch(getRefreshUrl(), {
             method: 'POST',
             credentials: 'include',
         });
