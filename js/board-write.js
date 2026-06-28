@@ -5,13 +5,13 @@ import {
     prependChild,
     resolveImageUrl,
 } from '../utils/function.js';
-import { getUserInfo } from '../api/modifyInfoRequest.js';
+import { getUserInfo } from '../apiRequest/modifyInfoRequest.js';
 import {
     createPost,
     fileUpload,
     updatePost,
     getBoardItem,
-} from '../api/board-writeRequest.js';
+} from '../apiRequest/board-writeRequest.js';
 import { handleApiError } from '../utils/request.js';
 
 const HTTP_OK = 200;

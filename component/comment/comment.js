@@ -1,6 +1,6 @@
 import { resolveImageUrl, padTo2Digits } from '../../utils/function.js';
 import Dialog from '../dialog/dialog.js';
-import { deleteComment, updateComment } from '../../api/commentRequest.js';
+import { deleteComment, updateComment } from '../../apiRequest/commentRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_NO_CONTENT = 204;

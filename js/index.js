@@ -2,8 +2,8 @@ import BoardItem from '../component/board/boardItem.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import { prependChild, resolveImageUrl } from '../utils/function.js';
-import { getPosts } from '../api/indexRequest.js';
-import { getUserInfo } from '../api/modifyInfoRequest.js';
+import { getPosts } from '../apiRequest/indexRequest.js';
+import { getUserInfo } from '../apiRequest/modifyInfoRequest.js';
 import { handleApiError } from '../utils/request.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';

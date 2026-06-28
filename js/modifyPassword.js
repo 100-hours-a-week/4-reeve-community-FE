@@ -1,5 +1,5 @@
-import { changePassword } from '../api/modifyPasswordRequest.js';
-import { getUserInfo } from '../api/modifyInfoRequest.js';
+import { changePassword } from '../apiRequest/modifyPasswordRequest.js';
+import { getUserInfo } from '../apiRequest/modifyInfoRequest.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {

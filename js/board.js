@@ -6,14 +6,14 @@ import {
     padTo2Digits,
     resolveImageUrl,
 } from '../utils/function.js';
-import { getUserInfo } from '../api/modifyInfoRequest.js';
+import { getUserInfo } from '../apiRequest/modifyInfoRequest.js';
 import {
     getPost,
     deletePost,
     writeComment,
     likePost,
     unlikePost,
-} from '../api/boardRequest.js';
+} from '../apiRequest/boardRequest.js';
 import { handleApiError } from '../utils/request.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';

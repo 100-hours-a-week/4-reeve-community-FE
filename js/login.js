@@ -4,7 +4,7 @@ import {
     prependChild,
     validEmail,
 } from '../utils/function.js';
-import { userLogin } from '../api/loginRequest.js';
+import { userLogin } from '../apiRequest/loginRequest.js';
 import { handleApiError } from '../utils/request.js';
 
 const HTTP_OK = 200;

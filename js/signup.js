@@ -11,7 +11,7 @@ import {
     userSignup,
     checkEmail,
     checkNickname,
-} from '../api/signupRequest.js';
+} from '../apiRequest/signupRequest.js';
 import { handleApiError } from '../utils/request.js';
 
 const MAX_PASSWORD_LENGTH = 20;
