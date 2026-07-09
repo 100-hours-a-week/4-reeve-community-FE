@@ -1,24 +1,20 @@
 # Stage 1: Dependencies — 운영 의존성 설치 전용
 
-# NODE_VERSION=26은 현재 로컬 개발 버전 기준 임시값.
-# 실제 배포 환경에서 Docker 설치 후 필요하면 버전을 조정한다.
+# NODE_VERSION=26은 현재 로컬 개발 버전 기준 임시값 - 실제 배포 환경에서 Docker 설치 후 필요하면 버전을 조정
 ARG NODE_VERSION=26
 FROM node:${NODE_VERSION}-alpine AS deps
 
 WORKDIR /app
 
-# package.json / package-lock.json만 먼저 복사하여 의존성 설치 레이어를 캐시한다.
-# app.js나 정적 파일만 수정된 경우 npm ci 레이어는 재사용된다.
+# package.json / package-lock.json만 먼저 복사하여 의존성 설치 레이어를 캐시
 COPY package.json package-lock.json ./
 
-# devDependencies는 제외하고 운영 실행에 필요한 dependencies만 설치한다.
-# nodemon은 devDependencies로 이동했기 때문에 이 단계에서 설치되지 않는다.
+# devDependencies는 제외하고 운영 실행에 필요한 dependencies만 설치
 RUN npm ci --omit=dev
 
 
-# ══════════════════════════════════════════════
 # Stage 2: Runtime — 실제 FE 서버 실행 이미지
-# ══════════════════════════════════════════════
+
 FROM node:${NODE_VERSION}-alpine
 
 WORKDIR /app
