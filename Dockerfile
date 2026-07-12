@@ -1,7 +1,7 @@
 # Stage 1: Dependencies — 운영 의존성 설치 전용
 
 # NODE_VERSION=26은 현재 로컬 개발 버전 기준 임시값 - 실제 배포 환경에서 Docker 설치 후 필요하면 버전을 조정
-ARG NODE_VERSION=26
+ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-alpine AS deps
 
 WORKDIR /app
