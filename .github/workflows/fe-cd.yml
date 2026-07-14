@@ -1,0 +1,128 @@
+name: FE CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Existing image tag to roll back to (leave empty to build and deploy a new one)"
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: fe-cd
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-2
+  ASG_NAME: reeve-fe-asg
+  LT_ID: lt-0931023f0e406c267
+  OIDC_ROLE_ARN: arn:aws:iam::417780655988:role/reeve-fe-github-oidc-role
+
+jobs:
+  build-and-push:
+    if: ${{ github.event.inputs.image_tag == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      built_tag: ${{ steps.vars.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Determine deploy tag (short Git SHA)
+        id: vars
+        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push reeve-fe
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.ecr-login.outputs.registry }}/reeve-fe:${{ steps.vars.outputs.tag }}
+
+  deploy:
+    needs: build-and-push
+    if: ${{ always() && (needs.build-and-push.result == 'success' || needs.build-and-push.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve final deploy tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "value=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ needs.build-and-push.outputs.built_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Render User Data (placeholder -> actual tag)
+        run: |
+          sed "s/__FE_IMAGE_TAG__/${{ steps.tag.outputs.value }}/" deploy/fe-user-data.sh > /tmp/rendered.sh
+          echo "USER_DATA_B64=$(base64 -w0 /tmp/rendered.sh)" >> "$GITHUB_ENV"
+
+      - name: Create new Launch Template version
+        id: lt
+        run: |
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id "${{ env.LT_ID }}" \
+            --source-version '$Latest' \
+            --version-description "deploy-${{ steps.tag.outputs.value }}" \
+            --launch-template-data "{\"UserData\":\"${USER_DATA_B64}\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' --output text)
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+          aws ec2 modify-launch-template \
+            --launch-template-id "${{ env.LT_ID }}" \
+            --default-version "${NEW_VERSION}"
+
+      - name: Start Instance Refresh
+        id: refresh
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "${{ env.ASG_NAME }}" \
+            --desired-configuration "{\"LaunchTemplate\":{\"LaunchTemplateId\":\"${{ env.LT_ID }}\",\"Version\":\"${{ steps.lt.outputs.version }}\"}}" \
+            --preferences '{"AutoRollback": true}' \
+            --query 'InstanceRefreshId' --output text)
+          echo "id=${REFRESH_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Poll until Instance Refresh completes
+        run: |
+          while true; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "${{ env.ASG_NAME }}" \
+              --instance-refresh-ids "${{ steps.refresh.outputs.id }}" \
+              --query 'InstanceRefreshes[0].Status' --output text)
+            echo "Current status: ${STATUS}"
+            case "$STATUS" in
+              Successful)
+                echo "Deployment succeeded"; exit 0 ;;
+              Failed|Cancelled|RollbackSuccessful|RollbackFailed)
+                echo "Deployment failed: ${STATUS}"; exit 1 ;;
+              *)
+                sleep 30 ;;
+            esac
+          done
