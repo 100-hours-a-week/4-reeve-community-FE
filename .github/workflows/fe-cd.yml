@@ -95,10 +95,6 @@ jobs:
             --query 'LaunchTemplateVersion.VersionNumber' --output text)
           echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
-          aws ec2 modify-launch-template \
-            --launch-template-id "${{ env.LT_ID }}" \
-            --default-version "${NEW_VERSION}"
-
       - name: Start Instance Refresh
         id: refresh
         run: |
