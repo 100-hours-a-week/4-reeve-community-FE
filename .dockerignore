@@ -18,7 +18,7 @@ pnpm-debug.log*
 
 # Local build outputs / caches
 dist
-build
+build/
 coverage
 .cache
 .tmp
