@@ -6,7 +6,7 @@ x-logging: &default-logging
 
 services:
   nodejs:
-    image: reeve-fe:${FE_IMAGE_TAG}
+    image: ${ECR_REGISTRY}/reeve-fe:${FE_IMAGE_TAG}
     restart: unless-stopped
     environment:
       API_BASE_URL: ${API_BASE_URL}
