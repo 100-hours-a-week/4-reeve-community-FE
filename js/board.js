@@ -246,10 +246,10 @@ const inputComment = async () => {
     }
     if (textareaElement.value === '') {
         commentBtnElement.disabled = true;
-        commentBtnElement.style.backgroundColor = '#E5E5E1';
+        commentBtnElement.style.backgroundColor = '#DDE3D4';
     } else {
         commentBtnElement.disabled = false;
-        commentBtnElement.style.backgroundColor = '#BC6C4A';
+        commentBtnElement.style.backgroundColor = '#5B7B54';
     }
 };
 

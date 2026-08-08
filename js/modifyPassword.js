@@ -45,10 +45,10 @@ const observeData = () => {
         newPassword !== passwordCheck
     ) {
         button.disabled = true;
-        button.style.backgroundColor = '#ACA0EB';
+        button.style.backgroundColor = '#DDE3D4';
     } else {
         button.disabled = false;
-        button.style.backgroundColor = '#7F6AEE';
+        button.style.backgroundColor = '#5B7B54';
     }
 };
 
