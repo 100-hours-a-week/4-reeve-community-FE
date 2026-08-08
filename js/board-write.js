@@ -64,10 +64,10 @@ const observeSignupData = () => {
     const { title, content } = boardWrite;
     if (!title || !content || title === '' || content === '') {
         submitButton.disabled = true;
-        submitButton.style.backgroundColor = '#E5E5E1';
+        submitButton.style.backgroundColor = '#DDE3D4';
     } else {
         submitButton.disabled = false;
-        submitButton.style.backgroundColor = '#BC6C4A';
+        submitButton.style.backgroundColor = '#5B7B54';
     }
 };
 

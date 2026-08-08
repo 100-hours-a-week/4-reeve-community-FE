@@ -3,8 +3,8 @@
 
 .wrap {
     width: 100%;
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 24px;
+    padding-right: 24px;
 
     justify-content: flex-start;
     row-gap: 16px;
@@ -24,6 +24,7 @@ h2 {
     flex-direction: column;
     row-gap: 8px;
     width: 100%;
+    max-width: 720px;
 }
 
 .inputBox label {
@@ -64,7 +65,7 @@ h2 {
 }
 
 .wrap button {
-    width: 80%;
+    width: min(100%, 720px);
     height: 40px;
     margin-top: 20px;
     border-radius: 8px;

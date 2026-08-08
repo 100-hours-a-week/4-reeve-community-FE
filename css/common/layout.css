@@ -2,13 +2,15 @@
 @import url('../../component/dialog/dialog.css');
 
 :root {
-    --color-bg: #FAFAF8;
+    --color-bg: #F9F8F3;
     --color-surface: #FFFFFF;
-    --color-text-primary: #1F1F1D;
-    --color-text-secondary: #6B6B66;
-    --color-text-muted: #9C9C96;
-    --color-border: #E5E5E1;
-    --color-accent: #BC6C4A;
+    --color-text-primary: #2C2C28;
+    --color-text-secondary: #6B6B60;
+    --color-text-muted: #9B9B8E;
+    --color-border: #DDE3D4;
+    --color-accent: #5B7B54;
+    --color-accent-soft: #EEF2E8;
+    --max-width: 1160px;
     --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -25,12 +27,10 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: min(100vw, 425px);
+    width: 100%;
     min-height: 100vh;
     margin: 0 auto;
-    border-left: 1px solid var(--color-border);
-    border-right: 1px solid var(--color-border);
-    background-color: var(--color-surface);
+    background-color: var(--color-bg);
     color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-weight: 400;
@@ -38,6 +38,8 @@ body {
 
 .wrap {
     width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
     min-height: 100vh;
     padding-top: 116px;
     padding-bottom: 16px;

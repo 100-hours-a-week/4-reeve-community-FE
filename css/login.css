@@ -210,3 +210,92 @@ a {
     object-fit: cover;
     border-radius: 50%;
 }
+
+.settingsPage {
+    padding-left: 24px;
+    padding-right: 24px;
+    row-gap: 24px;
+}
+
+.settingsPage .title {
+    margin-bottom: 12px;
+    color: var(--color-text-primary);
+    font-size: 28px;
+    line-height: 1.35em;
+    letter-spacing: 0;
+    font-weight: 500;
+}
+
+.settingsPanel {
+    width: min(100%, 720px);
+    max-width: 720px;
+    row-gap: 28px;
+    padding: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: var(--color-surface);
+}
+
+.settingsPage .inputBox label {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.settingsPage .inputBox input,
+.settingsPage .defaultText {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    font-family: var(--font-sans);
+}
+
+.settingsPage .defaultText {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 14px;
+    line-height: 1.4em;
+}
+
+.settingsPage .buttons {
+    margin-top: 12px;
+}
+
+.settingsPage .buttons button {
+    height: 40px;
+    border-radius: 8px;
+    background-color: var(--color-accent);
+    color: var(--color-surface);
+    font-weight: 500;
+}
+
+.settingsPage .buttons a {
+    color: var(--color-text-secondary);
+}
+
+.settingsPage .toastMessage {
+    border-radius: 8px;
+    background-color: var(--color-accent);
+}
+
+.settingsPage .profileUploadButton {
+    border-radius: 8px;
+    background-color: rgba(44, 44, 40, 0.62);
+}
+
+.settingsPage .profileRemoveButton {
+    background-color: var(--color-accent);
+    border-color: var(--color-surface);
+}
+
+.settingsPage .profileRemoveButton:hover {
+    background-color: var(--color-accent);
+}
+
+@media (max-width: 520px) {
+    .settingsPanel {
+        padding: 22px 16px;
+    }
+}
