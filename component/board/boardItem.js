@@ -49,12 +49,17 @@ const BoardItem = (
     const formattedDate = formatRelativeDate(date);
     const safeWriter = escapeHtml(writer);
     const safeTitle = escapeHtml(title);
+    const safeImgUrl = escapeHtml(String(imgUrl ?? '').trim());
+    const hasProfileImage = safeImgUrl.length > 0;
     const initial = safeWriter.trim().charAt(0) || '?';
+    const avatarMarkup = hasProfileImage
+        ? `<div class="initialAvatar profileAvatar"><img src="${safeImgUrl}" alt="${safeWriter} 프로필 사진"></div>`
+        : `<div class="initialAvatar" aria-hidden="true">${initial}</div>`;
 
     return `
     <a href="/html/board.html?id=${postId}" class="boardItemLink">
         <div class="boardItem">
-            <div class="initialAvatar" aria-hidden="true">${initial}</div>
+            ${avatarMarkup}
             <div class="boardItemBody">
                 <h2 class="title">${safeTitle}</h2>
                 <p class="meta">${safeWriter} · ${formattedDate}</p>
