@@ -64,10 +64,10 @@ const observeSignupData = () => {
     const { title, content } = boardWrite;
     if (!title || !content || title === '' || content === '') {
         submitButton.disabled = true;
-        submitButton.style.backgroundColor = '#ACA0EB';
+        submitButton.style.backgroundColor = '#E5E5E1';
     } else {
         submitButton.disabled = false;
-        submitButton.style.backgroundColor = '#7F6AEE';
+        submitButton.style.backgroundColor = '#BC6C4A';
     }
 };
 
@@ -87,10 +87,10 @@ const addBoard = async () => {
     const boardData = getBoardData();
 
     // boardData가 false일 경우 함수 종료
-    if (!boardData) return Dialog('게시글', '게시글을 입력해주세요.');
+    if (!boardData) return Dialog('이야기', '이야기를 입력해주세요.');
 
     if (boardData.title.length > MAX_TITLE_LENGTH)
-        return Dialog('게시글', '제목은 26자 이하로 입력해주세요.');
+        return Dialog('이야기', '제목은 26자 이하로 입력해주세요.');
 
     if (!isModifyMode) {
         const { ok, status, data, body } = await createPost(boardData);
@@ -108,7 +108,7 @@ const addBoard = async () => {
             helperElement.textContent = '제목, 내용을 모두 작성해주세요.';
         }
     } else {
-        // 게시글 작성 api 호출
+        // 이야기 수정 api 호출
         const postId = getQueryString('postId');
         const setData = {
             ...boardData,
@@ -125,7 +125,7 @@ const addBoard = async () => {
             removeImage = false;
             window.location.href = `/html/board.html?id=${postId}`;
         } else {
-            Dialog('게시글', '게시글 수정 실패');
+            Dialog('이야기', '이야기 수정 실패');
         }
     }
 };
@@ -190,7 +190,7 @@ const changeEventHandler = async (event, uid) => {
 
     observeSignupData();
 };
-// 수정모드시 사용하는 게시글 단건 정보 가져오기
+// 수정모드시 사용하는 이야기 단건 정보 가져오기
 const getBoardModifyData = async postId => {
     const { ok, status, data, body } = await getBoardItem(postId);
     if (!ok) {
@@ -254,7 +254,7 @@ const init = async () => {
     localStorage.removeItem('postImageId');
     const myInfo = await getCurrentUserInfo();
     if (!myInfo) {
-        prependChild(document.body, Header('커뮤니티', 1, null, true));
+        prependChild(document.body, Header('숨은여행지', 1, null, true));
         showLoginRequiredDialog();
         return;
     }
@@ -266,7 +266,7 @@ const init = async () => {
         DEFAULT_PROFILE_IMAGE,
     );
 
-    prependChild(document.body, Header('커뮤니티', 1, profileImage));
+    prependChild(document.body, Header('숨은여행지', 1, profileImage));
 
     if (modifyId) {
         isModifyMode = true;

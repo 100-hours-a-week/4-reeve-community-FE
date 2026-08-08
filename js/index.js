@@ -10,24 +10,13 @@ const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const SCROLL_THRESHOLD = 0.9;
 const INITIAL_OFFSET = 5;
 const ITEMS_PER_LOAD = 5;
-const DEFAULT_SORT = 'recent';
-let currentKeyword = '';
-let currentSort = DEFAULT_SORT;
 let offset = 0;
 let isEnd = false;
 let isProcessing = false;
 
-const updateSortVisibility = () => {
-    const sortRow = document.querySelector('#searchSortRow');
-    if (!sortRow) return;
-    const isSearching = currentKeyword.trim().length > 0;
-    sortRow.classList.toggle('isHidden', !isSearching);
-    sortRow.setAttribute('aria-hidden', String(!isSearching));
-};
-
 // getBoardItem 함수
 const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
-    const result = await getPosts(offsetValue, limitValue, currentKeyword);
+    const result = await getPosts(offsetValue, limitValue);
     if (!result.ok) {
         handleApiError(result.status, result.body);
         return [];
@@ -90,31 +79,6 @@ const loadBoardItems = async ({ reset = false } = {}) => {
     }
 };
 
-const addSearchEvent = () => {
-    const searchInput = document.querySelector('#searchInput');
-    const searchButton = document.querySelector('.searchButton');
-    if (!searchInput || !searchButton) return;
-
-    const runSearch = async () => {
-        const trimmedKeyword = searchInput.value.trim();
-        if (trimmedKeyword.length > 0 && trimmedKeyword.length < 2) {
-            Dialog('검색 실패', '검색어는 2글자 이상 입력해주세요.');
-            return;
-        }
-        currentKeyword = trimmedKeyword;
-        updateSortVisibility();
-        await loadBoardItems({ reset: true });
-    };
-
-    searchButton.addEventListener('click', runSearch);
-    searchInput.addEventListener('keydown', event => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            runSearch();
-        }
-    });
-};
-
 const showLoginRequiredDialog = () => {
     Dialog('로그인이 필요합니다', '로그인 후 이용해주세요.', () => {
         window.location.href = '/html/login.html';
@@ -129,18 +93,6 @@ const addWriteEvent = () => {
         if (localStorage.getItem('accessToken')) return;
         event.preventDefault();
         showLoginRequiredDialog();
-    });
-};
-
-const addSortEvent = () => {
-    const sortSelect = document.querySelector('#searchSortSelect');
-    if (!sortSelect) return;
-    sortSelect.value = currentSort;
-
-    sortSelect.addEventListener('change', async () => {
-        currentSort = sortSelect.value || DEFAULT_SORT;
-        if (currentKeyword.trim().length === 0) return;
-        await loadBoardItems({ reset: true });
     });
 };
 
@@ -184,15 +136,12 @@ const init = async () => {
 
         prependChild(
             document.body,
-            Header('Community', 0, profileImageUrl, !profileImageUrl),
+            Header('숨은여행지', 0, profileImageUrl, !profileImageUrl),
         );
 
-        updateSortVisibility();
         await loadBoardItems({ reset: true });
 
-        addSearchEvent();
         addWriteEvent();
-        addSortEvent();
         addInfinityScrollEvent();
     } catch (error) {
         console.error('Initialization failed:', error);

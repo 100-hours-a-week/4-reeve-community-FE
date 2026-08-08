@@ -76,6 +76,7 @@ const setBoardDetail = data => {
     const createdAtElement = document.querySelector('.createdAt');
     const imgElement = document.querySelector('.img');
     const nicknameElement = document.querySelector('.nickname');
+    const detailViewCountElement = document.querySelector('.detailViewCount');
 
     titleElement.textContent = data.title;
     const date = new Date(data.createdAt);
@@ -88,15 +89,18 @@ const setBoardDetail = data => {
     );
 
     nicknameElement.textContent = data.writer ? data.writer.nickname : '';
+    detailViewCountElement.textContent = `조회 ${formatCount(data.viewCount)}`;
 
     // 바디 정보
+    const heroElement = document.querySelector('.hero');
     const contentImgElement = document.querySelector('.contentImg');
     const fileUrl = resolveImageUrl(data.imageUrl);
     if (fileUrl) {
-        console.log(fileUrl);
         const img = document.createElement('img');
         img.src = fileUrl;
+        img.alt = data.title;
         contentImgElement.appendChild(img);
+        heroElement.classList.remove('hidden');
     }
     const contentElement = document.querySelector('.content');
     contentElement.textContent = data.content;
@@ -163,14 +167,14 @@ const setBoardDetail = data => {
 
 const setBoardModify = async (data, myInfo) => {
     if (parseInt(myInfo.userId, 10) === parseInt(data.writer.userId, 10)) {
-        const modifyElement = document.querySelector('.hidden');
+        const modifyElement = document.querySelector('.mod.hidden');
         modifyElement.classList.remove('hidden');
 
         const modifyBtnElement = document.querySelector('#deleteBtn');
         const postId = getQueryString('id');
         modifyBtnElement.addEventListener('click', () => {
             Dialog(
-                '게시글을 삭제하시겠습니까?',
+                '이야기를 삭제하시겠습니까?',
                 '삭제한 내용은 복구 할 수 없습니다.',
                 async () => {
                     const { ok, status, body } = await deletePost(postId);
@@ -242,10 +246,10 @@ const inputComment = async () => {
     }
     if (textareaElement.value === '') {
         commentBtnElement.disabled = true;
-        commentBtnElement.style.backgroundColor = '#ACA0EB';
+        commentBtnElement.style.backgroundColor = '#E5E5E1';
     } else {
         commentBtnElement.disabled = false;
-        commentBtnElement.style.backgroundColor = '#7F6AEE';
+        commentBtnElement.style.backgroundColor = '#BC6C4A';
     }
 };
 
@@ -266,7 +270,7 @@ const init = async () => {
               )
             : null;
 
-        prependChild(document.body, Header('커뮤니티', 2, profileImage, !myInfo));
+        prependChild(document.body, Header('숨은여행지', 2, profileImage, !myInfo));
 
         const pageId = getQueryString('id');
 
