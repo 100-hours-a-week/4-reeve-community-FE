@@ -38,6 +38,19 @@
     font-weight: 500;
 }
 
+.profileAvatar {
+    overflow: hidden;
+    padding: 0;
+    background-color: var(--color-accent-soft);
+}
+
+.profileAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
 .boardItemBody {
     min-width: 0;
     flex: 1;
