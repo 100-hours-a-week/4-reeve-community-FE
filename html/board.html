@@ -9,10 +9,13 @@
             href="../css/board.css"
             crossorigin="anonymous"
     />
-    <title>게시판 상세</title>
+    <title>이야기 상세</title>
 </head>
 <body>
 <section class="wrap">
+    <section class="hero hidden">
+        <div class="contentImg"></div>
+    </section>
     <section class="head">
         <h1 class="title"></h1>
         <div class="writerWrap">
@@ -21,6 +24,8 @@
             </picture>
             <h2 class="nickname"></h2>
             <h3 class="createdAt"></h3>
+            <span class="metaDivider">·</span>
+            <h3 class="detailViewCount"></h3>
             <div class="mod hidden">
                 <button id="modifyBtn">수정</button>
                 <button id="deleteBtn">삭제</button>
@@ -28,15 +33,15 @@
         </div>
     </section>
     <section class="body">
-        <div class="contentImg"></div>
         <article class="content"></article>
         <article class="bodyWrap">
             <div class="commentWrap">
                 <button class="countItem likeButton" type="button" aria-pressed="false">
+                    <span class="likeIcon" aria-hidden="true">♥</span>
                     <h3></h3>
-                    <p>좋아요수</p>
+                    <p>좋아요</p>
                 </button>
-                <div class="countItem viewCount">
+                <div class="countItem viewCount hidden">
                     <h3></h3>
                     <p>조회수</p>
                 </div>
@@ -51,7 +56,7 @@
         <div class="commentInputWrap">
             <textarea placeholder="댓글을 남겨주세요!"></textarea>
             <div>
-                <button class="commentInputBtn">댓글 등록</button>
+                <button class="commentInputBtn">댓글 남기기</button>
             </div>
         </div>
         <div class="commentList"></div>

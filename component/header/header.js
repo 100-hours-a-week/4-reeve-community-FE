@@ -1,5 +1,8 @@
 import { getServerUrl } from '../../utils/function.js';
 
+const SERVICE_NAME = '숨은여행지';
+const SERVICE_TAGLINE = '아무도 모르는 곳에서 발견한 이야기';
+
 const headerDropdownMenu = () => {
     const wrap = document.createElement('div');
 
@@ -79,7 +82,7 @@ const Header = (
         const Drop = headerDropdownMenu();
         Drop.classList.add('none');
 
-        profileElement.addEventListener('click', () => {
+        profileElement.addEventListener('click', event => {
             Drop.classList.toggle('none');
             event.stopPropagation();
         });
@@ -93,13 +96,22 @@ const Header = (
         rightBtnElement.textContent = '로그인';
     }
 
+    const brandElement = document.createElement('div');
+    brandElement.classList.add('brand');
+
     h1Element = document.createElement('h1');
-    h1Element.textContent = title;
+    h1Element.textContent = SERVICE_NAME;
+
+    const taglineElement = document.createElement('p');
+    taglineElement.textContent = SERVICE_TAGLINE;
+
+    brandElement.appendChild(h1Element);
+    brandElement.appendChild(taglineElement);
 
     headerElement = document.createElement('header');
 
     if (leftBtnElement) headerElement.appendChild(leftBtnElement);
-    headerElement.appendChild(h1Element);
+    headerElement.appendChild(brandElement);
     if (rightBtnElement) headerElement.appendChild(rightBtnElement);
 
     return headerElement;

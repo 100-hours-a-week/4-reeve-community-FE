@@ -6,25 +6,39 @@ header {
 
     align-items: center;
     justify-content: center;
-    padding: 32px 8px;
+    padding: 18px 8px;
 
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-    background-color: #f4f5f7;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
     position: absolute;
     top: 0;
     z-index: 99;
 }
 
-header h1 {
+header .brand {
     grid-area: title;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 2px;
+}
 
+header h1 {
     font-size: 32px;
-    line-height: 1.5em;
-    letter-spacing: -0.02em;
-    color: #000000;
+    line-height: 1.2em;
+    letter-spacing: 0;
+    color: var(--color-text-primary);
 
     text-align: center;
 
+    font-weight: 500;
+}
+
+header p {
+    font-size: 12px;
+    line-height: 1.4em;
+    letter-spacing: 0;
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
@@ -50,15 +64,15 @@ header .loginLink {
     justify-content: center;
     min-width: 48px;
     height: 30px;
-    border-radius: 15px;
-    background-color: #aca0eb;
-    color: #ffffff;
+    border-radius: 8px;
+    background-color: var(--color-accent);
+    color: var(--color-surface);
     font-size: 12px;
     line-height: 18px;
 }
 
 header .loginLink:hover {
-    background-color: #7f6aee;
+    background-color: var(--color-accent);
 }
 
 header .profile img {
@@ -79,10 +93,11 @@ header .drop {
     display: flex;
     flex-direction: column;
 
-    width: 110px;
-    background-color: #fff;
+    width: 112px;
+    background-color: var(--color-surface);
     border-radius: 4px;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px rgba(31, 31, 29, 0.08);
 }
 
 header .drop a {
@@ -92,12 +107,12 @@ header .drop a {
     padding: 10px 0;
 
     text-decoration: none;
-    color: #000;
+    color: var(--color-text-primary);
     font-size: 12px;
 }
 
 header .drop a:hover {
-    background: #e9e9e9;
+    background: var(--color-bg);
 }
 
 .none {

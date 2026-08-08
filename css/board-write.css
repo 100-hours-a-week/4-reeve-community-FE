@@ -12,11 +12,11 @@
 
 h2 {
     font-size: 24px;
-    font-weight: 700;
-    line-height: 31px;
-    letter-spacing: -0.02em;
+    font-weight: 500;
+    line-height: 1.35em;
+    letter-spacing: 0;
     text-align: center;
-    color: rgba(69, 72, 84, 1);
+    color: var(--color-text-primary);
 }
 
 .inputBox {
@@ -28,21 +28,23 @@ h2 {
 
 .inputBox label {
     font-size: 14px;
-    line-height: 17px;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-    color: rgba(69, 72, 84, 1);
+    line-height: 1.4em;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--color-text-primary);
 
     padding: 16px 16px;
 
-    border-bottom: 1px solid #00000029;
+    border-bottom: 1px solid var(--color-border);
 }
 .inputBox input {
     width: 100%;
     padding: 16px;
     border: none;
-    border-bottom: 1px solid #00000029;
+    border-bottom: 1px solid var(--color-border);
     background-color: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
 }
 
 .inputBox textarea {
@@ -53,25 +55,29 @@ h2 {
     outline: none;
 
     border: none;
-    border-bottom: 1px solid #00000029;
+    border-bottom: 1px solid var(--color-border);
     background-color: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.7em;
 }
 
 .wrap button {
     width: 80%;
-    height: 33px;
+    height: 40px;
     margin-top: 20px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
 
-    background-color: #aca0eb;
+    background-color: var(--color-accent);
 
     font-size: 14px;
-    font-weight: 700;
-    line-height: 16.8px;
-    letter-spacing: -0.02em;
+    font-weight: 500;
+    line-height: 1.2em;
+    letter-spacing: 0;
     text-align: center;
-    color: rgba(255, 255, 255, 1);
+    color: var(--color-surface);
 
     border: none;
 }
@@ -84,7 +90,7 @@ h2 {
 .deleteFile {
     cursor: pointer;
     padding-left: 10px;
-    color: red;
+    color: var(--color-accent);
 }
 
 .helperText {
