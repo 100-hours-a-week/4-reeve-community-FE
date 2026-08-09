@@ -113,19 +113,19 @@
 
 | 로그인 | 회원가입 |
 | --- | --- |
-| <!-- 로그인 스크린샷 --> | <!-- 회원가입 스크린샷 --> |
+| ![로그인](docs/images/login.png) | ![회원가입](docs/images/signup.png) |
 
 ### 게시글
 
 | 게시글 목록 | 게시글 작성 | 게시글 상세 | 게시글 수정 |
 | --- | --- | --- | --- |
-| <!-- 게시글 목록 스크린샷 --> | <!-- 게시글 작성 스크린샷 --> | <!-- 게시글 상세 스크린샷 --> | <!-- 게시글 수정 스크린샷 --> |
+| ![게시글 목록](docs/images/post-list.png) | ![게시글 작성](docs/images/post-write.png) | ![게시글 상세](docs/images/post-detail.png) | ![게시글 수정](docs/images/post-edit.png) |
 
 ### 회원
 
 | 회원정보 수정 | 비밀번호 수정 | 회원 탈퇴 |
 | --- | --- | --- |
-| <!-- 회원정보 수정 스크린샷 --> | <!-- 비밀번호 수정 스크린샷 --> | <!-- 회원 탈퇴 다이얼로그 스크린샷 --> |
+| ![회원정보 수정](docs/images/profile-edit.png) | ![비밀번호 수정](docs/images/password-edit.png) | ![회원 탈퇴](docs/images/account-delete.png) |
 
 
 ## 배포
@@ -133,7 +133,3 @@
 - Docker 이미지로 FE 서버를 패키징합니다.
 - GitHub Actions에서 이미지를 빌드하고 AWS ECR에 push합니다.
 - GitOps 저장소의 이미지 태그를 갱신하는 배포 흐름을 사용합니다.
-
-## 프로젝트 후기
-
-추후 작성 예정입니다.
