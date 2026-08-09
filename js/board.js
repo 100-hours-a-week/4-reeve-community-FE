@@ -15,6 +15,7 @@ import {
     unlikePost,
 } from '../apiRequest/boardRequest.js';
 import { handleApiError } from '../utils/request.js';
+import { renderAvatar } from '../component/avatar/avatar.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const MAX_COMMENT_LENGTH = 1000;
@@ -74,7 +75,7 @@ const setBoardDetail = data => {
     // 헤드 정보
     const titleElement = document.querySelector('.title');
     const createdAtElement = document.querySelector('.createdAt');
-    const imgElement = document.querySelector('.img');
+    const profileImgElement = document.querySelector('.profileImg');
     const nicknameElement = document.querySelector('.nickname');
     const detailViewCountElement = document.querySelector('.detailViewCount');
 
@@ -83,12 +84,14 @@ const setBoardDetail = data => {
     const formattedDate = `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`;
     createdAtElement.textContent = formattedDate;
 
-    imgElement.src = resolveImageUrl(
+    const writerNickname = data.writer ? data.writer.nickname : '';
+    profileImgElement.innerHTML = renderAvatar(
+        writerNickname,
         data.writer ? data.writer.profileImgUrl : null,
-        DEFAULT_PROFILE_IMAGE,
+        'detailAvatar',
     );
 
-    nicknameElement.textContent = data.writer ? data.writer.nickname : '';
+    nicknameElement.textContent = writerNickname;
     detailViewCountElement.textContent = `조회 ${formatCount(data.viewCount)}`;
 
     // 바디 정보

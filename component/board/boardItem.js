@@ -1,12 +1,5 @@
 import { padTo2Digits } from '../../utils/function.js';
-
-const escapeHtml = value =>
-    String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+import { escapeHtml, renderAvatar } from '../avatar/avatar.js';
 
 const formatRelativeDate = date => {
     const dateObj = new Date(date);
@@ -49,12 +42,7 @@ const BoardItem = (
     const formattedDate = formatRelativeDate(date);
     const safeWriter = escapeHtml(writer);
     const safeTitle = escapeHtml(title);
-    const safeImgUrl = escapeHtml(String(imgUrl ?? '').trim());
-    const hasProfileImage = safeImgUrl.length > 0;
-    const initial = safeWriter.trim().charAt(0) || '?';
-    const avatarMarkup = hasProfileImage
-        ? `<div class="initialAvatar profileAvatar"><img src="${safeImgUrl}" alt="${safeWriter} 프로필 사진"></div>`
-        : `<div class="initialAvatar" aria-hidden="true">${initial}</div>`;
+    const avatarMarkup = renderAvatar(writer, imgUrl);
 
     return `
     <a href="/html/board.html?id=${postId}" class="boardItemLink">

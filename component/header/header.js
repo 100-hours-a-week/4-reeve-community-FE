@@ -110,9 +110,29 @@ const Header = (
 
     headerElement = document.createElement('header');
 
-    if (leftBtnElement) headerElement.appendChild(leftBtnElement);
-    headerElement.appendChild(brandElement);
-    if (rightBtnElement) headerElement.appendChild(rightBtnElement);
+    const headerInnerElement = document.createElement('div');
+    headerInnerElement.classList.add('headerInner');
+
+    const logoIconElement = document.createElement('span');
+    logoIconElement.classList.add('brandIcon');
+    logoIconElement.setAttribute('aria-hidden', 'true');
+    logoIconElement.innerHTML = `
+        <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M4 18l6.5-9 4.5 6 2-2.8L22 18H4z" />
+            <path d="M4 18h18" />
+        </svg>
+    `;
+
+    const brandTitleElement = document.createElement('div');
+    brandTitleElement.classList.add('brandTitle');
+    brandTitleElement.appendChild(logoIconElement);
+    brandTitleElement.appendChild(h1Element);
+    brandElement.insertBefore(brandTitleElement, taglineElement);
+
+    if (leftBtnElement) headerInnerElement.appendChild(leftBtnElement);
+    headerInnerElement.appendChild(brandElement);
+    if (rightBtnElement) headerInnerElement.appendChild(rightBtnElement);
+    headerElement.appendChild(headerInnerElement);
 
     return headerElement;
 };

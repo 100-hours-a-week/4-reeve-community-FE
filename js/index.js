@@ -8,22 +8,25 @@ import { handleApiError } from '../utils/request.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const SCROLL_THRESHOLD = 0.9;
-const INITIAL_OFFSET = 5;
-const ITEMS_PER_LOAD = 5;
+const ITEMS_PER_LOAD = 9;
 let offset = 0;
 let isEnd = false;
 let isProcessing = false;
 
 // getBoardItem 함수
-const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
+const getBoardPage = async (offsetValue = 0, limitValue = ITEMS_PER_LOAD) => {
     const result = await getPosts(offsetValue, limitValue);
     if (!result.ok) {
         handleApiError(result.status, result.body);
-        return [];
+        return { content: [], last: true };
     }
-    return result.data && Array.isArray(result.data.content)
-        ? result.data.content
-        : result.data;
+    if (result.data && Array.isArray(result.data.content)) {
+        return result.data;
+    }
+    return {
+        content: Array.isArray(result.data) ? result.data : [],
+        last: true,
+    };
 };
 
 const setBoardItem = boardData => {
@@ -54,9 +57,22 @@ const resetBoardList = () => {
     }
 };
 
+const updateLoadMoreButton = () => {
+    const loadMoreWrap = document.querySelector('.loadMoreWrap');
+    const loadMoreButton = document.querySelector('.loadMoreBtn');
+    if (!loadMoreButton) return;
+
+    if (loadMoreWrap) {
+        loadMoreWrap.hidden = isEnd;
+    }
+    loadMoreButton.hidden = isEnd;
+    loadMoreButton.disabled = isProcessing;
+};
+
 const loadBoardItems = async ({ reset = false } = {}) => {
     if (isProcessing || (!reset && isEnd)) return;
     isProcessing = true;
+    updateLoadMoreButton();
 
     try {
         if (reset) {
@@ -64,19 +80,31 @@ const loadBoardItems = async ({ reset = false } = {}) => {
             isEnd = false;
             resetBoardList();
         }
-        const items = await getBoardItem(offset, ITEMS_PER_LOAD);
+        const page = await getBoardPage(offset, ITEMS_PER_LOAD);
+        const items = page.content;
         if (!items || items.length === 0) {
             isEnd = true;
             return;
         }
         setBoardItem(items);
         offset += ITEMS_PER_LOAD;
+        isEnd = Boolean(page.last);
     } catch (error) {
         console.error('Error fetching items:', error);
         isEnd = true;
     } finally {
         isProcessing = false;
+        updateLoadMoreButton();
     }
+};
+
+const addLoadMoreEvent = () => {
+    const loadMoreButton = document.querySelector('.loadMoreBtn');
+    if (!loadMoreButton) return;
+
+    loadMoreButton.addEventListener('click', () => {
+        loadBoardItems();
+    });
 };
 
 const showLoginRequiredDialog = () => {
@@ -98,10 +126,6 @@ const addWriteEvent = () => {
 
 // 스크롤 이벤트 추가
 const addInfinityScrollEvent = () => {
-    offset = INITIAL_OFFSET;
-    isEnd = false;
-    isProcessing = false;
-
     window.addEventListener('scroll', async () => {
         const hasScrolledToThreshold =
             window.scrollY + window.innerHeight >=
@@ -142,6 +166,7 @@ const init = async () => {
         await loadBoardItems({ reset: true });
 
         addWriteEvent();
+        addLoadMoreEvent();
         addInfinityScrollEvent();
     } catch (error) {
         console.error('Initialization failed:', error);
