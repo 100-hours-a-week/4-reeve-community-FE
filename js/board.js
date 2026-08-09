@@ -273,7 +273,7 @@ const init = async () => {
               )
             : null;
 
-        prependChild(document.body, Header('숨은여행지', 2, profileImage, !myInfo));
+        prependChild(document.body, Header('여행모퉁이', 2, profileImage, !myInfo));
 
         const pageId = getQueryString('id');
 
