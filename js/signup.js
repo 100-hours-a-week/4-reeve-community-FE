@@ -238,7 +238,7 @@ const observeSignupData = () => {
 
 const init = async () => {
     await authCheckReverse();
-    prependChild(document.body, Header('커뮤니티', 1));
+    prependChild(document.body, Header('여행모퉁이', 1));
     observeSignupData();
     addEventForInputElements();
     signupClick();

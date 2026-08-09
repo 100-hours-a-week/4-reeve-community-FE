@@ -1,6 +1,6 @@
 import { getServerUrl } from '../../utils/function.js';
 
-const SERVICE_NAME = '숨은여행지';
+const SERVICE_NAME = '여행모퉁이';
 const SERVICE_TAGLINE = '아무도 모르는 곳에서 발견한 이야기';
 
 const headerDropdownMenu = () => {

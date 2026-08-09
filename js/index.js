@@ -160,7 +160,7 @@ const init = async () => {
 
         prependChild(
             document.body,
-            Header('숨은여행지', 0, profileImageUrl, !profileImageUrl),
+            Header('여행모퉁이', 0, profileImageUrl, !profileImageUrl),
         );
 
         await loadBoardItems({ reset: true });

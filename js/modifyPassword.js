@@ -172,7 +172,7 @@ const modifyPassword = async () => {
 const init = () => {
     ensureCurrentPasswordInput();
     button.addEventListener('click', modifyPassword);
-    prependChild(document.body, Header('커뮤니티', 1, profileImage));
+    prependChild(document.body, Header('여행모퉁이', 1, profileImage));
     addEventForInputElements();
     observeData();
 };

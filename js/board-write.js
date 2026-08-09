@@ -254,7 +254,7 @@ const init = async () => {
     localStorage.removeItem('postImageId');
     const myInfo = await getCurrentUserInfo();
     if (!myInfo) {
-        prependChild(document.body, Header('숨은여행지', 1, null, true));
+        prependChild(document.body, Header('여행모퉁이', 1, null, true));
         showLoginRequiredDialog();
         return;
     }
@@ -266,7 +266,7 @@ const init = async () => {
         DEFAULT_PROFILE_IMAGE,
     );
 
-    prependChild(document.body, Header('숨은여행지', 1, profileImage));
+    prependChild(document.body, Header('여행모퉁이', 1, profileImage));
 
     if (modifyId) {
         isModifyMode = true;
