@@ -75,11 +75,34 @@
     display: none;
 }
 
-.head .writerWrap .profileImg img {
+.head .writerWrap .profileImg {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+}
+
+.head .writerWrap .profileImg .initialAvatar {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 500;
+}
+
+.head .writerWrap .profileImg .profileAvatar img {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
+    display: block;
 }
 .head .writerWrap .nickname {
     font-size: 13px;

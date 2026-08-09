@@ -13,14 +13,17 @@
 
     padding: 20px;
     border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-accent);
     border-radius: 12px;
     background-color: var(--color-surface);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
 
     cursor: pointer;
 }
 
 .boardItemLink:hover .boardItem {
     border-color: var(--color-accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .initialAvatar {
@@ -36,6 +39,7 @@
     font-size: 14px;
     line-height: 1;
     font-weight: 500;
+    overflow: hidden;
 }
 
 .profileAvatar {

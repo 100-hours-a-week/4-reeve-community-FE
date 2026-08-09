@@ -10,6 +10,8 @@
     --color-border: #DDE3D4;
     --color-accent: #5B7B54;
     --color-accent-soft: #EEF2E8;
+    --color-header-bg: #2F4A34;
+    --color-header-text: #F9F8F3;
     --max-width: 1160px;
     --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
